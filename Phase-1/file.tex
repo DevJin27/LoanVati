@@ -1,0 +1,891 @@
+\documentclass[12pt,a4paper]{article}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  PACKAGES
+% ─────────────────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}          % UTF-8 input encoding (fixes Unicode errors)
+\usepackage[T1]{fontenc}
+\usepackage[a4paper, top=2.2cm, bottom=2.2cm, left=2.2cm, right=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{amsmath}
+
+\tcbuselibrary{skins, breakable, theorems}
+\usetikzlibrary{positioning, shadows}
+
+% Fix headheight warning
+\setlength{\headheight}{24.5pt}
+\addtolength{\topmargin}{-12.5pt}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  COLOR PALETTE
+% ─────────────────────────────────────────────────────────────────────────────
+\definecolor{primary}{HTML}{0F4C81}
+\definecolor{secondary}{HTML}{2E86C1}
+\definecolor{accent}{HTML}{1A5276}
+\definecolor{highlight}{HTML}{F39C12}
+\definecolor{success}{HTML}{1E8449}
+\definecolor{danger}{HTML}{C0392B}
+\definecolor{lightbg}{HTML}{EBF5FB}
+\definecolor{warningbg}{HTML}{FEF9E7}
+\definecolor{successbg}{HTML}{EAFAF1}
+\definecolor{codebg}{HTML}{F2F3F4}
+\definecolor{linegray}{HTML}{BFC9CA}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  HYPERREF
+% ─────────────────────────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=secondary,
+    pdfauthor={Dev Jindal et al.},
+    pdftitle={Intelligent Credit Risk Prediction System},
+}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  PAGE STYLE
+% ─────────────────────────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{linegray}\textit{Credit Risk Prediction System}}
+\fancyhead[R]{\small\color{linegray}\textit{ML Project Report}}
+\fancyfoot[C]{\small\color{linegray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{%
+  \hbox to\headwidth{\color{linegray}\leaders\hrule height \headrulewidth\hfill}}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  SECTION STYLES
+%  NOTE: #1 must NOT appear inside \colorbox / \parbox in \titleformat.
+%        The number goes in a pill; the title text flows naturally after it.
+% ─────────────────────────────────────────────────────────────────────────────
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{primary}}
+  {\colorbox{primary}{\color{white}\enspace\thesection\enspace}}
+  {0.8em}
+  {}
+  [{\color{secondary!50}\vspace{3pt}\hrule height 1.5pt}\vspace{2pt}]
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{secondary}}
+  {\thesubsection}{0.8em}{}
+  [{\color{linegray}\vspace{1pt}\hrule height 0.5pt}\vspace{2pt}]
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{accent}}
+  {\thesubsubsection}{0.8em}{}
+
+\titlespacing*{\section}{0pt}{2em}{0.6em}
+\titlespacing*{\subsection}{0pt}{1.4em}{0.3em}
+\titlespacing*{\subsubsection}{0pt}{1em}{0.2em}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  SPACING & LISTS
+% ─────────────────────────────────────────────────────────────────────────────
+\onehalfspacing
+\setlength{\parskip}{0.55em}
+\setlength{\parindent}{0pt}
+\setlist[itemize]{leftmargin=1.6em, itemsep=0.25em, topsep=0.25em, parsep=0pt}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=0.25em, topsep=0.25em, parsep=0pt}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  CUSTOM TCOLORBOX ENVIRONMENTS
+% ─────────────────────────────────────────────────────────────────────────────
+
+% Key Insight (blue)
+\newtcolorbox{keybox}[1][]{
+  enhanced, breakable,
+  colback=lightbg, colframe=primary,
+  coltitle=white, fonttitle=\bfseries\small,
+  title={\faLightbulb\quad Key Insight},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=primary, colframe=primary, sharp corners},
+  sharp corners=south,
+  left=6pt, right=6pt, top=10pt, bottom=6pt,
+  #1
+}
+
+% Important Note (amber)
+\newtcolorbox{warnbox}[1][]{
+  enhanced, breakable,
+  colback=warningbg, colframe=highlight,
+  coltitle=white, fonttitle=\bfseries\small,
+  title={\faExclamationTriangle\quad Important Note},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=highlight, colframe=highlight, sharp corners},
+  sharp corners=south,
+  left=6pt, right=6pt, top=10pt, bottom=6pt,
+  #1
+}
+
+% Strength (green)
+\newtcolorbox{successbox}[1][]{
+  enhanced, breakable,
+  colback=successbg, colframe=success,
+  coltitle=white, fonttitle=\bfseries\small,
+  title={\faCheckCircle\quad Strength},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=success, colframe=success, sharp corners},
+  sharp corners=south,
+  left=6pt, right=6pt, top=10pt, bottom=6pt,
+  #1
+}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  TABLE / CODE STYLE
+% ─────────────────────────────────────────────────────────────────────────────
+\renewcommand{\arraystretch}{1.45}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    frame=single, rulecolor=\color{linegray},
+    breaklines=true,
+    numbers=left, numberstyle=\tiny\color{linegray},
+    keywordstyle=\color{primary}\bfseries,
+    commentstyle=\color{success}\itshape,
+    stringstyle=\color{danger},
+    showstringspaces=false,
+}
+
+% ═══════════════════════════════════════════════════════════════════════════
+%  DOCUMENT
+% ═══════════════════════════════════════════════════════════════════════════
+\begin{document}
+\thispagestyle{empty}
+
+% ── COVER PAGE ──────────────────────────────────────────────────────────────
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[primary] (current page.north west)
+    rectangle ([yshift=-5.5cm]current page.north east);
+  \fill[secondary!70] (current page.south west)
+    rectangle ([yshift=1.2cm]current page.south east);
+  \fill[white, opacity=0.07]
+    ([xshift=-2.5cm, yshift=-2.5cm]current page.north east) circle (4cm);
+  \fill[white, opacity=0.05]
+    ([xshift=-1cm, yshift=-1cm]current page.north east) circle (2.5cm);
+  \fill[white, opacity=0.07]
+    ([xshift=1.5cm, yshift=0.6cm]current page.south west) circle (2.2cm);
+\end{tikzpicture}
+
+\vspace*{1.8cm}
+
+\begin{center}
+  {\color{white}\fontsize{11}{13}\selectfont
+    \textls[200]{MACHINE LEARNING PROJECT REPORT}}\\[0.6cm]
+  {\color{white}\fontsize{26}{32}\selectfont\bfseries
+    Intelligent Credit Risk}\\[0.2cm]
+  {\color{white}\fontsize{26}{32}\selectfont\bfseries
+    Prediction System}\\[0.5cm]
+  {\color{white!70}\fontsize{12}{15}\selectfont
+    Multiclass Borrower Risk Classification using Ensemble ML}
+\end{center}
+
+\vspace{3.5cm}
+
+% Info card
+\begin{center}
+\begin{tcolorbox}[
+  enhanced, width=0.84\textwidth,
+  colback=white, colframe=linegray,
+  arc=6pt, boxrule=0.5pt,
+  drop shadow={opacity=0.08},
+  left=10pt, right=10pt, top=10pt, bottom=10pt,
+]
+  \begin{center}
+    {\Large\bfseries\color{primary} Project Overview}\\[0.5em]
+    {\color{linegray}\rule{0.6\linewidth}{0.4pt}}\\[0.8em]
+  \end{center}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabular}{@{} p{3.2cm} p{9cm} @{}}
+    \faDatabase\quad\textbf{Datasets}
+      & \texttt{case\_study1.csv} (Bank of Baroda) \newline
+        \texttt{case\_study2.csv} (CIBIL Bureau) \\
+    \faBullseye\quad\textbf{Target}
+      & \texttt{Approved\_Flag} --- Multiclass (P1 / P2 / P3 / P4) \\
+    \faCogs\quad\textbf{Models}
+      & Logistic Regression, Decision Tree, Random Forest, XGBoost \\
+    \faWrench\quad\textbf{Tuning}
+      & GridSearchCV with 3-fold stratified cross-validation \\
+    \faRocket\quad\textbf{Deployment}
+      & Gradio web interface for live inference \\
+    \faCode\quad\textbf{Stack}
+      & Python, scikit-learn, XGBoost, Gradio, pandas \\
+  \end{tabular}
+\end{tcolorbox}
+\end{center}
+
+\vspace{1.8cm}
+
+% Team card
+\begin{center}
+\begin{tcolorbox}[
+  enhanced, width=0.84\textwidth,
+  colback=primary!6, colframe=primary,
+  arc=6pt, boxrule=0.6pt,
+  title={\faUsers\quad Team Members},
+  fonttitle=\bfseries\color{white},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=primary},
+  left=6pt, right=6pt, top=10pt, bottom=6pt,
+]
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{} l l @{}}
+  \textbf{Dev Jindal} (Team Lead) & Data preprocessing, model development \& coordination \\
+  \textbf{Gargi Srivastava}       & Report writing and documentation \\
+  \textbf{Agrima Gusain}          & UI design and report writing \\
+  \textbf{Bhawana Yadav}          & UI design and implementation \\
+  \textbf{Mishti Sharma}          & Demo video and presentation \\
+\end{tabular}
+\end{center}
+\end{tcolorbox}
+\end{center}
+
+\vfill
+\begin{center}{\color{linegray}\small February 2025}\end{center}
+
+\newpage
+{\setlength{\parskip}{0pt}\tableofcontents}
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Abstract}
+% ═══════════════════════════════════════════════════════════════════════════
+
+Credit risk assessment is one of the most critical operations for banks and
+financial institutions. Before approving a loan, lenders must evaluate whether
+a borrower is likely to repay. Incorrect decisions lead to financial losses and
+rising default rates --- making an automated, data-driven approach essential.
+
+\begin{keybox}
+  This project builds a machine learning credit risk prediction system that
+  classifies borrowers into \textbf{four risk tiers} --- P1 (most creditworthy)
+  through P4 (highest risk) --- using a merged dataset of internal bank records
+  and CIBIL bureau data. The production model is \textbf{Logistic Regression},
+  selected for its interpretability and consistent multiclass performance.
+\end{keybox}
+
+During initial analysis, the value \texttt{-99999} was discovered in several
+numerical columns. Rather than treating these as outliers, investigation confirmed
+they were \textbf{sentinel values representing missing data}. Proper handling was
+critical to ensure accurate model training.
+
+After cleaning, merging, and performing statistical feature selection
+(Chi-square, ANOVA, VIF), four models were trained --- Logistic Regression,
+Decision Tree, Random Forest, and XGBoost --- each tuned via GridSearchCV.
+A Gradio web interface was developed for real-time borrower risk inference.
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+% ═══════════════════════════════════════════════════════════════════════════
+
+\textbf{Credit risk} is the possibility that a borrower will fail to meet
+financial obligations as per agreed terms. For banks, credit risk management
+is foundational --- lending forms the core of their business, and poor
+assessment leads to high defaults, financial instability, and significant losses.
+
+\subsection{Limitations of Traditional Approaches}
+
+Traditional loan approval relied on manual review or fixed rule-based frameworks
+--- minimum income thresholds, employment status, basic credit scores.
+These systems:
+
+\begin{itemize}
+  \item[\textcolor{danger}{\faTimesCircle}]
+    Fail to capture \textbf{complex patterns and feature interactions}
+  \item[\textcolor{danger}{\faTimesCircle}]
+    Are \textbf{time-consuming} and operationally expensive
+  \item[\textcolor{danger}{\faTimesCircle}]
+    May introduce \textbf{human bias} into decisions
+  \item[\textcolor{danger}{\faTimesCircle}]
+    Cannot easily scale to thousands of applications daily
+\end{itemize}
+
+\subsection{Machine Learning Advantage}
+
+ML algorithms analyze large volumes of historical borrower data and learn hidden
+relationships between features --- income, trade line history, loan behavior,
+repayment patterns. This project adopts a \textbf{supervised multiclass
+classification} approach, predicting one of four risk classes (P1--P4) rather
+than a simple binary approve/decline.
+
+\begin{successbox}
+  Using stratified splitting, \texttt{class\_weight='balanced'}, and statistical
+  feature selection, the system delivers \textbf{robust predictions even for
+  minority classes} (P3 and P4) --- the most financially critical cases.
+\end{successbox}
+
+\subsection{Key Data Challenge --- Sentinel Values}
+
+\begin{warnbox}
+  During EDA, sentinel values of \texttt{-99999.00} were identified in several
+  financial columns. These are \textbf{not outliers} --- they are placeholders
+  for missing data. Treating them as real values would severely distort the model.
+  They were replaced with \texttt{NaN} and handled via standard missing data removal.
+\end{warnbox}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Problem Statement}
+% ═══════════════════════════════════════════════════════════════════════════
+
+Financial institutions must evaluate thousands of applications and determine
+which borrowers are likely to repay. Manual evaluation is slow and inconsistent.
+Rule-based systems fail to capture complex borrower behavior patterns.
+
+\textbf{This project aims to design a machine learning-based credit risk
+prediction system} that automatically classifies applicants into one of four
+risk tiers with explainable, consistent predictions.
+
+\vspace{0.5em}
+
+\begin{center}
+\begin{tcolorbox}[
+  enhanced, width=0.92\textwidth,
+  colback=primary!6, colframe=primary, arc=6pt,
+  title={\faBullseye\quad Four Risk Tiers (Target: \texttt{Approved\_Flag})},
+  fonttitle=\bfseries\small\color{white},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=primary},
+  left=4pt, right=4pt, top=10pt, bottom=4pt,
+]
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{>{\bfseries\color{primary}}c p{3.5cm} p{4.5cm} p{3.5cm}}
+  \toprule
+  \textbf{Class} & \textbf{Risk Profile} & \textbf{Credit Quality} & \textbf{Decision} \\
+  \midrule
+  P1 & \textcolor{success}{\faCircle}\ Top Tier
+     & Excellent history, low risk
+     & \textcolor{success}{\textbf{Approve}} \\
+  P2 & \textcolor{secondary}{\faCircle}\ Good
+     & Minor concerns, manageable
+     & \textcolor{secondary}{\textbf{Conditional}} \\
+  P3 & \textcolor{highlight}{\faCircle}\ Marginal
+     & Notable risk factors present
+     & \textcolor{highlight}{\textbf{Manual Review}} \\
+  P4 & \textcolor{danger}{\faCircle}\ High Risk
+     & High default probability
+     & \textcolor{danger}{\textbf{Decline}} \\
+  \bottomrule
+\end{tabular}
+\end{tcolorbox}
+\end{center}
+
+\vspace{0.5em}
+
+\textbf{The system focuses on:}
+
+\begin{enumerate}
+  \item Merging two data sources (internal bank data + CIBIL bureau data)
+  \item Identifying and handling sentinel values (\texttt{-99999})
+  \item Statistical feature selection --- Chi-square, VIF, ANOVA
+  \item Training and comparing four classification models
+  \item Hyperparameter tuning via GridSearchCV with cross-validation
+  \item Evaluating with accuracy, macro precision, recall, and F1-score
+  \item Deploying a Gradio web interface for live predictions
+\end{enumerate}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Dataset Description}
+% ═══════════════════════════════════════════════════════════════════════════
+
+\subsection{Data Sources}
+
+Two datasets are merged on the shared key \texttt{PROSPECTID} via an inner join:
+
+\vspace{0.4em}
+\begin{center}
+\begin{tabular}{>{\bfseries}p{4cm} p{4.5cm} p{6cm}}
+  \toprule
+  \textbf{File} & \textbf{Source} & \textbf{Content} \\
+  \midrule
+  \texttt{case\_study1.csv} & Bank of Baroda (internal) & Demographic \& financial attributes \\
+  \texttt{case\_study2.csv} & CIBIL Bureau               & Trade line \& repayment history \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Feature Overview}
+
+\begin{tcolorbox}[
+  enhanced, colback=codebg, colframe=linegray, arc=4pt,
+  title={\faTable\quad Key Features in the Merged Dataset},
+  fonttitle=\bfseries\small\color{accent},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=linegray, colframe=linegray},
+  left=4pt, right=4pt,
+]
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{>{\bfseries\ttfamily}p{5.6cm} p{2.4cm} p{6.2cm}}
+  \textbf{Feature} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  NETMONTHLYINCOME           & Numerical   & Net monthly income of borrower \\
+  EDUCATION                  & Categorical & Ordinal: SSC to Professional (7 levels) \\
+  MARITALSTATUS              & Categorical & Married / Single / Others \\
+  GENDER                     & Categorical & M / F \\
+  Age\_Oldest\_TL            & Numerical   & Age of oldest trade line (months) \\
+  Age\_Newest\_TL            & Numerical   & Age of newest trade line (months) \\
+  time\_since\_recent\_payment & Numerical & Months since last payment \\
+  time\_since\_recent\_enq   & Numerical   & Months since last credit enquiry \\
+  Time\_With\_Curr\_Empr     & Numerical   & Months with current employer \\
+  last\_prod\_enq2           & Categorical & Last product enquiry type \\
+  first\_prod\_enq2          & Categorical & First product enquiry type \\
+  max\_recent\_level\_of\_deliq & Numerical & Max recent delinquency level \\
+  recent\_level\_of\_deliq   & Numerical   & Most recent delinquency level \\
+\end{tabular}
+\end{tcolorbox}
+
+\subsection{Data Quality Issues}
+
+\begin{warnbox}
+  \textbf{Sentinel values (\texttt{-99999})} were found across multiple numerical
+  columns. These represent \emph{missing data}, not extreme financial measurements.
+  Mishandling them as real values would introduce severe distortions into the model.
+
+  \vspace{0.4em}
+  \textbf{Resolution:} All sentinel values were replaced with \texttt{NaN} via
+  \texttt{clean\_df1(sentinel=-99999.0)}, followed by row-level removal.
+  Only $\approx$\,40 rows were dropped --- a negligible fraction of the total dataset.
+  Two CIBIL columns with excessive missingness were dropped entirely.
+\end{warnbox}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Data Preprocessing}
+% ═══════════════════════════════════════════════════════════════════════════
+
+\subsection{Step-by-Step Pipeline}
+
+\begin{enumerate}
+
+  \item \textbf{Sentinel Replacement}\\
+  All \texttt{-99999} values replaced with \texttt{NaN} using
+  \texttt{clean\_df1(df, sentinel=-99999.0)}. Standard missing-value
+  handling is then applied uniformly downstream.
+
+  \item \textbf{Row Removal}\\
+  Rows with any remaining \texttt{NaN} values removed. Impact: $\approx$40
+  rows dropped --- negligible relative to dataset size.
+
+  \item \textbf{Column Dropping}\\
+  Two CIBIL columns with excessive missingness dropped before merging --- too
+  sparse to impute reliably.
+
+  \item \textbf{Inner Join}\\
+  \texttt{df1.merge(df2, on='PROSPECTID', how='inner')} --- only records present
+  in both data sources are retained, ensuring data completeness.
+
+  \item \textbf{Identifier Removal}\\
+  \texttt{PROSPECTID} dropped after joining (carries no predictive value).
+
+  \item \textbf{Feature Encoding}
+
+  \begin{tcolorbox}[
+    colback=lightbg, colframe=secondary, arc=4pt,
+    left=6pt, right=6pt, top=4pt, bottom=4pt,
+  ]
+  \renewcommand{\arraystretch}{1.4}
+  \begin{tabular}{@{} p{2.8cm} p{10.5cm} @{}}
+    \textbf{Ordinal}
+      & \texttt{EDUCATION} mapped to integers 1--7
+        (SSC=1, 12TH=2, Graduate=3, Under Graduate=4,
+         Post-Graduate=5, Professional=6, Others=7) \\
+    \textbf{One-hot}
+      & \texttt{MARITALSTATUS}, \texttt{GENDER},
+        \texttt{last\_prod\_enq2}, \texttt{first\_prod\_enq2}
+        encoded via \texttt{pd.get\_dummies()} \\
+    \textbf{Label Enc.}
+      & Target \texttt{Approved\_Flag} encoded to integers via
+        \texttt{LabelEncoder}; inverse-transformed at inference time \\
+  \end{tabular}
+  \end{tcolorbox}
+
+  \item \textbf{Statistical Feature Selection}
+
+  Three methods applied in sequence:
+  \begin{itemize}
+    \item \textbf{Chi-square test} --- categorical features: retain at $p < 0.05$
+    \item \textbf{VIF} (Variance Inflation Factor) --- iterative removal of
+          multicollinear numerical features above threshold 6.0
+    \item \textbf{ANOVA F-test} --- numerical features: retain at $p < 0.05$
+  \end{itemize}
+
+  \item \textbf{Scaling and Train/Test Split}
+
+  \begin{successbox}
+    \textbf{Zero data leakage:} \texttt{StandardScaler} was \emph{fit on the
+    training set only} and \emph{transform-only} applied to the test set.
+    An 80/20 split with \texttt{stratify=y} preserved the P1--P4 class
+    distribution in both sets. \texttt{RANDOM\_STATE=42} enforces reproducibility.
+  \end{successbox}
+
+\end{enumerate}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Modeling Methodology}
+% ═══════════════════════════════════════════════════════════════════════════
+
+Since \texttt{Approved\_Flag} has four classes, this is a \textbf{multiclass
+classification} problem. Four models were trained and compared via a shared
+\texttt{train\_with\_grid\_search()} utility (\texttt{n\_jobs=-1}, \texttt{verbose=1}).
+
+\subsection{Logistic Regression --- Production Model}
+
+\begin{tcolorbox}[
+  enhanced, colback=successbg, colframe=success, arc=5pt,
+  title={\faRocket\quad Selected as Production Model},
+  fonttitle=\bfseries\small\color{white},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=success},
+  left=6pt, right=6pt, top=10pt, bottom=6pt,
+]
+  Logistic Regression was selected over higher-accuracy ensemble models because:
+  \begin{itemize}
+    \item[\faCheck] Produces \textbf{well-calibrated probabilities}
+          --- essential for risk-tier thresholds
+    \item[\faCheck] \textbf{Interpretable} --- auditable in a
+          lending / regulatory context
+    \item[\faCheck] \textbf{Consistent macro-level performance}
+          across all four risk classes
+  \end{itemize}
+\end{tcolorbox}
+
+\textbf{Hyperparameter search space:}
+\begin{itemize}
+  \item \texttt{C}: [0.01, 0.1, 1, 10] \quad
+        \texttt{solver}: [lbfgs, saga] \quad
+        \texttt{max\_iter}: [1000]
+  \item \texttt{class\_weight}: \texttt{'balanced'} (fixed) \quad
+        \texttt{multi\_class}: \texttt{'multinomial'} (fixed)
+\end{itemize}
+
+\subsection{Decision Tree}
+
+A Decision Tree captures nonlinear feature interactions.
+\texttt{class\_weight='balanced'} up-weights minority classes.
+
+\textbf{Grid:} \texttt{max\_depth}: [3, 5, 7] \quad
+\texttt{min\_samples\_split}: [2, 5, 10] \quad
+\texttt{criterion}: [gini, entropy]
+
+\subsection{Random Forest}
+
+An ensemble of 100--200 trees reduces overfitting vs.\ a single Decision Tree.
+
+\textbf{Grid:} \texttt{n\_estimators}: [100, 200] \quad
+\texttt{max\_depth}: [5, 10, None] \quad
+\texttt{min\_samples\_split}: [2, 5]
+
+\subsection{XGBoost}
+
+Gradient-boosted trees with \texttt{objective='multi:softprob'} and
+\texttt{eval\_metric='mlogloss'} for proper multiclass probability output.
+
+\textbf{Grid:} \texttt{n\_estimators}: [100, 200] \quad
+\texttt{max\_depth}: [3, 5] \quad
+\texttt{learning\_rate}: [0.05, 0.1] \quad
+\texttt{subsample}: [0.8, 1.0]
+
+\subsection{GridSearchCV Configuration}
+
+\begin{center}
+\begin{tabular}{>{\bfseries}p{3.5cm} p{9cm}}
+  \toprule
+  \textbf{Setting} & \textbf{Value} \\
+  \midrule
+  Strategy     & Exhaustive grid search across all combinations \\
+  CV Folds     & 3 (stratified) \\
+  Scoring      & Accuracy \\
+  Parallelism  & \texttt{n\_jobs=-1} (all available cores) \\
+  Best model   & \texttt{best\_estimator\_} stored in \texttt{model\_registry} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Model Evaluation}
+% ═══════════════════════════════════════════════════════════════════════════
+
+All four models were evaluated on the held-out 20\% test set.
+
+\subsection{Metrics}
+
+\begin{center}
+\begin{tabular}{>{\bfseries}p{3.5cm} p{10cm}}
+  \toprule
+  \textbf{Metric} & \textbf{Description} \\
+  \midrule
+  Accuracy         & Overall proportion of correct predictions \\
+  Macro Precision  & Average precision across P1, P2, P3, P4 (equal weight per class) \\
+  Macro Recall     & Average recall across all four classes \\
+  Macro F1         & Harmonic mean of macro precision and recall \\
+  Per-class P/R/F1 & Individual breakdown for each of P1, P2, P3, P4 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warnbox}
+  In credit risk, \textbf{per-class metrics matter more than overall accuracy}.
+  Classifying a P4 borrower (high risk) as P1 (top tier) is a catastrophic error
+  --- far more damaging than the reverse. Per-class precision and recall expose
+  exactly this kind of inter-class failure.
+\end{warnbox}
+
+\subsection{Model Comparison}
+
+Results from all four models were aggregated into a comparison table sorted by
+accuracy (descending). A full \texttt{classification\_report} was printed per
+model with readable P1--P4 labels and per-class support counts.
+
+\subsection{Production Model Selection}
+
+\begin{keybox}
+  \textbf{Logistic Regression} was selected as the production model.
+  While ensemble methods may achieve marginally higher accuracy,
+  Logistic Regression delivers:
+  \begin{itemize}
+    \item[\faAngleRight] \textbf{Calibrated probabilities}
+          --- critical for defining risk-tier cut-offs
+    \item[\faAngleRight] \textbf{Interpretable coefficients}
+          --- required for regulatory lending compliance
+    \item[\faAngleRight] \textbf{Consistent recall on P3/P4}
+          --- the minority, high-stakes borrower classes
+  \end{itemize}
+  This choice is \textbf{intentional and documented} in the \texttt{predict()} function.
+\end{keybox}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Model Optimization}
+% ═══════════════════════════════════════════════════════════════════════════
+
+\subsection{Hyperparameter Tuning}
+
+GridSearchCV tested all parameter combinations defined in the central
+\texttt{CONFIG} dictionary. Best parameters were automatically selected
+via \texttt{best\_estimator\_} and stored in \texttt{model\_registry}.
+
+\subsection{Cross-Validation}
+
+3-fold cross-validation was applied during GridSearchCV, ensuring performance
+estimates are not dependent on a single split. Each fold preserved the class
+distribution via internal stratification.
+
+\subsection{Class Imbalance Handling}
+
+\begin{successbox}
+  \textbf{Three strategies} combined to handle class imbalance across P1--P4:
+  \begin{enumerate}
+    \item \texttt{class\_weight='balanced'} on LR, DT, RF
+          --- up-weights minority classes P3 and P4 during training
+    \item \texttt{stratify=y} during train/test split
+          --- preserves the class ratio in both sets
+    \item \textbf{Macro F1} reported separately
+          --- not fooled by majority class dominance in accuracy
+  \end{enumerate}
+\end{successbox}
+
+\subsection{Feature Refinement}
+
+Statistical feature selection (Chi-square, VIF, ANOVA) reduced noise,
+removed multicollinear features, and retained only the most statistically
+significant predictors, improving model generalization.
+
+\subsection{Inference Pipeline Consistency}
+
+\begin{keybox}
+  The \texttt{predict(raw\_input: dict)} function mirrors the training
+  pipeline \textbf{step-for-step}:
+  \begin{enumerate}
+    \item Build single-row DataFrame from \texttt{raw\_input}
+    \item Ordinal-encode \texttt{EDUCATION} via \texttt{CONFIG['EDUCATION\_MAP']}
+    \item One-hot encode nominal columns
+    \item \texttt{reindex()} to align with training feature set
+          (fills unseen OHE columns with 0)
+    \item Scale continuous features using the \emph{training-fitted} scaler
+    \item Predict with \texttt{lr\_model} and inverse-transform the label
+  \end{enumerate}
+  This guarantees \textbf{zero training--inference mismatch}.
+\end{keybox}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Gradio Web Interface}
+% ═══════════════════════════════════════════════════════════════════════════
+
+A Gradio-based interface provides real-time credit risk inference for
+non-technical users, organized into three columns.
+
+\subsection{Input Fields (13 Total)}
+
+\begin{center}
+\begin{tcolorbox}[
+  enhanced, colback=lightbg, colframe=secondary, arc=5pt,
+  title={\faDesktop\quad UI Layout --- Three-Column Design},
+  fonttitle=\bfseries\small\color{white},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=secondary},
+  left=4pt, right=4pt, top=10pt, bottom=4pt,
+]
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{>{\bfseries}p{3.2cm} p{4.5cm} p{5.5cm}}
+  \toprule
+  \textbf{Column} & \textbf{Field} & \textbf{Widget} \\
+  \midrule
+  \multirow{4}{*}{\color{primary}Personal Info}
+    & Education             & Dropdown (7 levels) \\
+    & Marital Status        & Dropdown (3 choices) \\
+    & Gender                & Dropdown (M / F) \\
+    & Net Monthly Income    & Number field (Rs.) \\
+  \midrule
+  \multirow{4}{*}{\color{secondary}Credit Profile}
+    & Last Product Enquiry  & Dropdown (6 types) \\
+    & First Product Enquiry & Dropdown (6 types) \\
+    & Age of Oldest TL      & Slider (0--300 months) \\
+    & Age of Newest TL      & Slider (0--120 months) \\
+  \midrule
+  \multirow{5}{*}{\color{accent}Delinquency}
+    & Months Since Payment  & Slider (0--120) \\
+    & Months Since Enquiry  & Slider (0--60) \\
+    & Months With Employer  & Slider (0--300) \\
+    & Max Delinquency Level & Slider (0--10) \\
+    & Recent Deliq. Level   & Slider (0--10) \\
+  \bottomrule
+\end{tabular}
+\end{tcolorbox}
+\end{center}
+
+\subsection{Outputs}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{>{\bfseries}p{3cm} p{10.5cm}}
+  \toprule
+  \textbf{Output} & \textbf{Description} \\
+  \midrule
+  Prediction
+    & Risk class with color indicator and lending recommendation:\\
+    & \quad \textcolor{success}{\faCircle}\enspace P1 --- Top tier (approve)\\
+    & \quad \textcolor{secondary}{\faCircle}\enspace P2 --- Good (approve with conditions)\\
+    & \quad \textcolor{highlight}{\faCircle}\enspace P3 --- Marginal (manual review)\\
+    & \quad \textcolor{danger}{\faCircle}\enspace P4 --- High risk (decline)\\
+  \midrule
+  Probabilities
+    & Percentage confidence for all four classes (P1--P4) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{successbox}
+  The Gradio wrapper calls the \textbf{full} \texttt{predict()} function ---
+  all encoding and scaling steps are applied correctly.
+  No pipeline step is bypassed.
+\end{successbox}
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+% ═══════════════════════════════════════════════════════════════════════════
+
+This project built a machine learning credit risk prediction system from two
+merged real-world data sources --- internal bank records and CIBIL bureau data.
+The complete workflow covered data loading, EDA, sentinel value handling,
+preprocessing, statistical feature selection, multiclass model training,
+hyperparameter optimization, evaluation, and Gradio deployment.
+
+\begin{keybox}
+  \textbf{Key achievements:}
+  \begin{itemize}
+    \item[\faCheck] Four models trained and compared on a 4-class risk problem
+    \item[\faCheck] Sentinel values correctly identified and handled
+    \item[\faCheck] Zero data leakage --- scaler fitted on training set only
+    \item[\faCheck] Stratified splitting preserves class balance
+    \item[\faCheck] Production \texttt{predict()} function mirrors
+          the training pipeline step-for-step
+    \item[\faCheck] Live Gradio interface for non-technical users
+  \end{itemize}
+\end{keybox}
+
+Logistic Regression was selected as the production model for its interpretability,
+calibrated probabilities, and consistent performance across all four risk classes.
+The use of \texttt{class\_weight='balanced'} and statistical feature selection
+contributed to robust generalization.
+
+This system demonstrates that machine learning can \textbf{meaningfully improve
+lending decision quality} --- replacing slow, biased rule-based systems with
+accurate, nuanced, and explainable risk stratification.
+
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════════
+\section{Future Work}
+% ═══════════════════════════════════════════════════════════════════════════
+
+\begin{tcolorbox}[
+  enhanced, colback=warningbg, colframe=highlight, arc=5pt,
+  title={\faForward\quad Recommended Improvements},
+  fonttitle=\bfseries\small\color{white},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=highlight},
+  left=6pt, right=6pt, top=10pt, bottom=6pt,
+]
+\begin{enumerate}
+  \item \textbf{Model Persistence} --- Save model, scaler, and encoder
+        as a \texttt{joblib} bundle; globals are lost on kernel restart
+
+  \item \textbf{GridSearch Scoring} --- Switch from \texttt{accuracy}
+        to \texttt{macro-f1} for better optimization on minority classes (P3, P4)
+
+  \item \textbf{Confusion Matrix} --- Add to evaluation; essential for
+        understanding inter-class misclassification costs
+
+  \item \textbf{XGBoost Imbalance Handling} --- Add sample weights
+        (equivalent of \texttt{class\_weight='balanced'} for XGBoost)
+
+  \item \textbf{CV Folds} --- Raise from 3 to 5 for more stable estimates
+
+  \item \textbf{Explainability (XAI)} --- Integrate SHAP or LIME for
+        regulatory-grade model interpretability
+
+  \item \textbf{Package Versioning} --- Pin \texttt{scikit-learn},
+        \texttt{xgboost}, \texttt{gradio} in \texttt{requirements.txt}
+
+  \item \textbf{Cloud Deployment} --- Deploy via Hugging Face Spaces
+        or Render for persistent public access
+
+  \item \textbf{Additional Models} --- Experiment with LightGBM,
+        CatBoost, and stacked ensembles
+\end{enumerate}
+\end{tcolorbox}
+
+\end{document}
