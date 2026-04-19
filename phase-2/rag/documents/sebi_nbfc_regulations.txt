@@ -1,0 +1,32 @@
+Document ID: NBFC-PRUDENTIAL-NORMS
+Title: RBI and Prudential Norm Themes Relevant to NBFC Credit Risk Management
+
+Section 1.1 - Prudential Oversight Context
+NBFC prudential regulation focuses on the safety, soundness, and resilience of institutions that lend outside the traditional banking structure. Supervisory attention typically covers capital adequacy, asset classification, provisioning, concentration, governance, customer treatment, and reporting discipline. While the detailed circular landscape changes over time, a lender evaluating retail credit should understand that prudential norms are not only accounting rules. They shape how early stress is recognized, escalations are handled, and losses are provisioned.
+
+Section 2.1 - Asset Classification Logic
+Asset classification determines whether a loan is treated as standard, special mention, or non-performing based on the borrower's payment behavior and contractual delinquency. The core prudential idea is that credit weakness should be recognized on time and should not be masked by repeated restructuring without evidence of genuine cure. Institutions should have clear rules for identifying days past due, partial payments, and technical versus substantive arrears. Data quality is critical because provisioning and supervisory reporting depend on the accuracy of these status fields.
+
+Section 2.2 - NPA Recognition
+For many lending products, an account becomes a non-performing asset when interest or principal remains overdue beyond the applicable prudential threshold. Once an account crosses into NPA status, the lender should intensify monitoring, reassess recoverability, and evaluate whether income recognition or accrual practices must change. The transition is important for retail risk systems because borrowers with persistent delinquency or recent cure from deep arrears may warrant stricter underwriting treatment even if they are applying for fresh credit elsewhere.
+
+Section 3.1 - Provisioning Norms
+Provisioning norms require lenders to set aside reserves against expected deterioration in asset quality. Standard assets may attract lower provisioning, while substandard, doubtful, and loss assets require progressively higher coverage depending on the degree of impairment and the quality of security available. From a credit decision support perspective, the lesson is that delinquency severity, duration, and collateral quality all matter. A score focused only on origination probability may miss the economic cost of future deterioration if recovery prospects are ignored.
+
+Section 3.2 - Restructuring and Forbearance
+Prudential expectations generally require careful control over restructuring. A lender should not use repeated tenor extensions or payment holidays to delay recognition of underlying stress. When an account is modified, the institution should document the rationale, assess the borrower's revised repayment capacity, and monitor post-restructuring performance. For underwriting models, prior restructuring can be a meaningful risk signal because it suggests that the borrower has already encountered affordability challenges.
+
+Section 4.1 - Governance of Credit Sanctioning
+An NBFC should maintain approval matrices, delegated authorities, portfolio limits, and exception tracking. Credit decisions should be consistent with board-approved risk appetite and internal policy. If models are used, management should understand their limitations, approved use cases, and override rules. High-risk approvals outside policy tolerance should require escalation. Repeat exceptions in the same segment may indicate that the scorecard or policy thresholds need recalibration.
+
+Section 4.2 - Delinquency Monitoring and Collections
+Institutions are expected to monitor early warning signs such as roll-rate deterioration, missed installment clusters, rising utilization, or repeated bounce behavior. Collections strategy should be risk-sensitive and lawful. Borrowers who are only marginally delinquent may be suitable for reminders or restructuring assessment, while deeper delinquency requires stronger recovery action and provisioning review. Systems should preserve the dates and amounts relevant to delinquency measurement because these fields feed both operational control and regulatory reporting.
+
+Section 5.1 - Concentration and Portfolio View
+Prudential management is not only about individual borrowers. It also considers concentrations by geography, occupation, borrower type, product type, and risk band. A model that performs adequately on average may still expose the institution to concentrated downside if approvals cluster in unstable segments. Decision support systems should therefore retain segment labels and support downstream portfolio analytics, not just one-off approval outcomes.
+
+Section 6.1 - Documentation and Supervisory Traceability
+Prudential compliance depends on traceability. A lender should be able to show what information was used, how the risk decision was derived, what policy applied, and what follow-up action occurred once stress appeared. This matters for both traditional credit committees and AI-assisted scoring systems. Where automated recommendations are used, internal control teams should still be able to inspect inputs, model outputs, overrides, and resulting customer action.
+
+Section 7.1 - Practical Implication for Lending Decisions
+In practical underwriting, prudential norms support a simple discipline: identify the borrower's capacity and willingness to repay, understand prior signs of stress, classify risk accurately, and escalate borderline cases before loss emerges. A system that flags manual review for uncertain applicants is often more consistent with prudential practice than a system that forces binary approve or reject decisions in every case.

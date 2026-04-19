@@ -15,7 +15,6 @@ build/
 dist/
 /models/*.joblib
 /rag/faiss_index.bin
-/rag/metadata.json
 logs/
 *.log
 .DS_Store
