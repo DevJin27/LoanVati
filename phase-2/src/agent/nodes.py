@@ -1,1 +1,242 @@
-"""Agent node placeholders."""
+"""LangGraph node implementations for the lending decision assistant."""
+
+from __future__ import annotations
+
+import json
+import os
+import time
+
+from langchain_groq import ChatGroq
+
+from src.agent.prompts import (
+    PROFILE_NODE_SYSTEM,
+    PROFILE_NODE_USER,
+    REPORT_NODE_SYSTEM,
+    REPORT_NODE_USER,
+    RISK_NODE_SYSTEM,
+    RISK_NODE_USER,
+)
+from src.agent.state import AgentState
+from src.rag.retriever import FAISSRetriever
+
+REGULATORY_FALLBACK = {
+    "content": (
+        "Per RBI fair practice expectations, lenders should assess income stability, "
+        "existing debt obligations, and repayment history before making a lending decision."
+    ),
+    "source_name": "RBI Fair Practices Code (Fallback)",
+    "section_id": "General",
+    "score": 0.0,
+}
+
+
+def get_llm() -> ChatGroq:
+    """Return the configured Groq client with deterministic settings."""
+    return ChatGroq(
+        api_key=os.getenv("GROQ_API_KEY"),
+        model="llama3-8b-8192",
+        temperature=0.0,
+        max_tokens=1_500,
+    )
+
+
+def _state_copy(state: AgentState) -> dict:
+    return {
+        "error_flags": list(state.get("error_flags", [])),
+        "processing_steps": list(state.get("processing_steps", [])),
+    }
+
+
+def _invoke_prompt(system_prompt: str, user_prompt: str) -> str:
+    """Call the LLM with two retries and exponential backoff."""
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            llm = get_llm()
+            response = llm.invoke(
+                [
+                    ("system", system_prompt),
+                    ("user", user_prompt),
+                ]
+            )
+            return getattr(response, "content", str(response)).strip()
+        except Exception as exc:  # pragma: no cover - exercised through mocks
+            last_error = exc
+            if attempt < 2:
+                time.sleep(2**attempt)
+    raise RuntimeError(str(last_error) if last_error else "Unknown LLM error")
+
+
+def _fallback_risk_analysis(state: AgentState) -> tuple[str, str]:
+    """Create a deterministic analysis if the LLM cannot return valid JSON."""
+    top_features = ", ".join(
+        feature.get("feature", "unknown_feature") for feature in state.get("top_features", [])[:3]
+    )
+    risk_analysis = (
+        f"The model assigned a risk score of {state['ml_risk_score']:.3f} and classified the "
+        f"borrower as {state['risk_class']}. The strongest model signals were {top_features}. "
+        "This summary was generated from model outputs because the LLM response could not be parsed."
+    )
+    retrieval_query = "credit appraisal fair practices manual review lending risk"
+    return risk_analysis, retrieval_query
+
+
+def _validate_report(report: dict, retrieved_docs: list[dict]) -> None:
+    required_keys = {"profile", "risk_analysis", "decision", "sources", "disclaimer"}
+    if set(report.keys()) != required_keys:
+        raise ValueError("Report JSON is missing required keys")
+
+    decision = report.get("decision", {})
+    if decision.get("action") not in {"APPROVE", "REJECT", "MANUAL REVIEW"}:
+        raise ValueError("Invalid decision action")
+
+    allowed_sources = {item["source_name"] for item in retrieved_docs}
+    for source in report.get("sources", []):
+        if source.get("title") not in allowed_sources:
+            raise ValueError("Report cited a source that was not retrieved")
+
+    disclaimer = report.get("disclaimer", "")
+    required_disclaimer = "AI-assisted recommendation. Not the sole basis for lending decisions."
+    if required_disclaimer not in disclaimer:
+        raise ValueError("Missing required disclaimer text")
+
+
+def _fallback_report(state: AgentState) -> dict:
+    """Return a safe deterministic report when the report LLM fails."""
+    decision_action = (
+        "MANUAL REVIEW"
+        if "Uncertain" in state["risk_class"] or state["ml_risk_score"] >= 0.45
+        else "APPROVE"
+        if state["ml_risk_score"] < 0.30
+        else "REJECT"
+    )
+    return {
+        "profile": state.get("borrower_summary", ""),
+        "risk_analysis": state.get("risk_analysis", ""),
+        "decision": {
+            "action": decision_action,
+            "justification": (
+                f"Model risk score={state['ml_risk_score']:.3f}; risk class={state['risk_class']}."
+            ),
+        },
+        "sources": [
+            {
+                "title": item["source_name"],
+                "section_id": item["section_id"],
+                "score": item["score"],
+            }
+            for item in state.get("retrieved_docs", [])
+        ],
+        "disclaimer": "AI-assisted recommendation. Not the sole basis for lending decisions.",
+    }
+
+
+def profile_node(state: AgentState) -> dict:
+    """Summarize borrower context into a short analyst-ready profile."""
+    update = _state_copy(state)
+    try:
+        response = _invoke_prompt(
+            PROFILE_NODE_SYSTEM,
+            PROFILE_NODE_USER.format(
+                borrower_data_json=json.dumps(state["borrower_data"], indent=2, default=str)
+            ),
+        )
+        update["borrower_summary"] = response
+        update["processing_steps"].append("ProfileNode: OK")
+    except Exception as exc:
+        fallback_summary = (
+            f"Borrower summary unavailable from LLM. Using raw data with "
+            f"{len(state['borrower_data'])} supplied fields."
+        )
+        update["borrower_summary"] = fallback_summary
+        update["error_flags"].append(f"PROFILE_NODE_ERROR: {exc}")
+        update["processing_steps"].append("ProfileNode: FALLBACK")
+    return update
+
+
+def risk_node(state: AgentState) -> dict:
+    """Explain model drivers and synthesize a retrieval query."""
+    update = _state_copy(state)
+    top_features_json = json.dumps(state["top_features"], indent=2, default=str)
+    user_prompt = RISK_NODE_USER.format(
+        borrower_summary=state["borrower_summary"],
+        ml_risk_score=state["ml_risk_score"],
+        risk_class=state["risk_class"],
+        top_features_json=top_features_json,
+    )
+
+    for attempt in range(2):
+        try:
+            response = _invoke_prompt(RISK_NODE_SYSTEM, user_prompt)
+            payload = json.loads(response)
+            update["risk_analysis"] = payload["risk_analysis"]
+            update["retrieval_query"] = payload["retrieval_query"]
+            update["processing_steps"].append("RiskNode: OK")
+            return update
+        except Exception as exc:
+            if attempt == 0:
+                user_prompt += "\nReturn valid JSON only."
+                continue
+            fallback_analysis, fallback_query = _fallback_risk_analysis(state)
+            update["risk_analysis"] = fallback_analysis
+            update["retrieval_query"] = fallback_query
+            update["error_flags"].append(f"RISK_NODE_ERROR: {exc}")
+            update["processing_steps"].append("RiskNode: FALLBACK")
+            return update
+
+    return update
+
+
+def rag_node(state: AgentState) -> dict:
+    """Retrieve relevant regulatory context without using the LLM."""
+    update = _state_copy(state)
+    try:
+        retriever = FAISSRetriever()
+        results = retriever.query(state["retrieval_query"], top_k=3)
+        if not results:
+            update["retrieved_docs"] = [REGULATORY_FALLBACK]
+            update["error_flags"].append(
+                "RAG_ZERO_RESULTS: using fallback regulatory context"
+            )
+            update["processing_steps"].append("RAGNode: FALLBACK")
+            return update
+
+        update["retrieved_docs"] = results
+        update["processing_steps"].append("RAGNode: OK")
+    except Exception as exc:
+        update["retrieved_docs"] = [REGULATORY_FALLBACK]
+        update["error_flags"].append(f"RAG_NODE_ERROR: {exc}")
+        update["processing_steps"].append("RAGNode: FALLBACK")
+    return update
+
+
+def report_node(state: AgentState) -> dict:
+    """Synthesize the final five-section lending report."""
+    update = _state_copy(state)
+    user_prompt = REPORT_NODE_USER.format(
+        borrower_summary=state["borrower_summary"],
+        risk_analysis=state["risk_analysis"],
+        ml_risk_score=state["ml_risk_score"],
+        risk_class=state["risk_class"],
+        top_features_json=json.dumps(state["top_features"], indent=2, default=str),
+        retrieved_docs_json=json.dumps(state["retrieved_docs"], indent=2, default=str),
+    )
+
+    for attempt in range(2):
+        try:
+            response = _invoke_prompt(REPORT_NODE_SYSTEM, user_prompt)
+            report = json.loads(response)
+            _validate_report(report, state["retrieved_docs"])
+            update["final_report"] = report
+            update["processing_steps"].append("ReportNode: OK")
+            return update
+        except Exception as exc:
+            if attempt == 0:
+                user_prompt += "\nReturn only valid JSON with the required schema."
+                continue
+            update["final_report"] = _fallback_report(state)
+            update["error_flags"].append(f"REPORT_NODE_ERROR: {exc}")
+            update["processing_steps"].append("ReportNode: FALLBACK")
+            return update
+
+    return update
