@@ -24,6 +24,10 @@ def _assert_grouped_output(frame: pd.DataFrame) -> None:
 
 
 def test_validate_raw_data_accepts_phase2_mapping() -> None:
+    if not resolve_raw_file("application_train").exists():
+        import pytest
+
+        pytest.skip("Phase 2 raw dataset is not available in this environment.")
     assert validate_raw_data(check_row_counts=False)
 
 
@@ -38,6 +42,10 @@ def test_engineer_main_features_handles_employment_sentinel(
 
 
 def test_all_aggregations_return_sk_id_curr_index(bureau_sample: pd.DataFrame) -> None:
+    if not resolve_raw_file("application_train").exists():
+        import pytest
+
+        pytest.skip("Phase 2 raw dataset is not available in this environment.")
     bureau_balance_sample = pd.read_csv(
         resolve_raw_file("bureau_balance"),
         usecols=["SK_ID_BUREAU", "STATUS"],

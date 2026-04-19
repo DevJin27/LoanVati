@@ -17,6 +17,7 @@ dist/
 /rag/faiss_index.bin
 logs/
 *.log
+/test_results.txt
 .DS_Store
 Thumbs.db
 .ipynb_checkpoints/

@@ -21,6 +21,10 @@ class FAISSRetriever:
     ) -> None:
         self.index_path = Path(index_path)
         self.metadata_path = Path(metadata_path)
+        if not self.index_path.exists() or not self.metadata_path.exists():
+            from rag.build_index import build_index
+
+            build_index()
         self.index = faiss.read_index(str(self.index_path))
         self.metadata = json.loads(self.metadata_path.read_text())
         self.embedder = DocumentEmbedder()

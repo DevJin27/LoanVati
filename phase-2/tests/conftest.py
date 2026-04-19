@@ -54,18 +54,20 @@ def models_dir(phase2_root: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
-def sample_feature_dict(raw_application_sample: pd.DataFrame) -> dict:
-    """Build a realistic partial borrower payload from the raw application table."""
-    row = raw_application_sample.drop(columns=["TARGET"]).iloc[0]
-    cleaned: dict = {}
-    for key, value in row.items():
-        if pd.isna(value):
-            cleaned[key] = None
-        elif hasattr(value, "item"):
-            cleaned[key] = value.item()
-        else:
-            cleaned[key] = value
-    return cleaned
+def sample_feature_dict() -> dict:
+    """Return a synthetic but realistic borrower payload for API/model tests."""
+    return {
+        "AMT_INCOME_TOTAL": 180000.0,
+        "AMT_CREDIT": 500000.0,
+        "AMT_ANNUITY": 42000.0,
+        "CNT_FAM_MEMBERS": 2.0,
+        "DAYS_BIRTH": -12000.0,
+        "DAYS_EMPLOYED": -2500.0,
+        "NAME_INCOME_TYPE": "Working",
+        "NAME_EDUCATION_TYPE": "Higher education",
+        "NAME_FAMILY_STATUS": "Married",
+        "NAME_HOUSING_TYPE": "House / apartment",
+    }
 
 
 @pytest.fixture(scope="session")

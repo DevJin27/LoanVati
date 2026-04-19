@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 REQUIRED_FEATURES = [
     "AMT_INCOME_TOTAL",
@@ -23,6 +23,8 @@ REQUIRED_FEATURES = [
 class FeatureImpact(BaseModel):
     """Model explanation entry for one influential feature."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     feature: str
     shap_value: float
     direction: str
@@ -30,6 +32,8 @@ class FeatureImpact(BaseModel):
 
 class PredictionRequest(BaseModel):
     """Borrower payload used for both pure prediction and report generation."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     applicant_id: str = Field(..., min_length=1)
     features: dict[str, Any]
@@ -52,6 +56,8 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     """Response returned by the ML-only scoring endpoint."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     risk_score: float
     risk_class: str
     confidence: float
@@ -62,6 +68,8 @@ class PredictionResponse(BaseModel):
 class HealthResponse(BaseModel):
     """Response returned by the API health endpoint."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     status: str
     model_version: str
     uptime_seconds: float
@@ -69,6 +77,8 @@ class HealthResponse(BaseModel):
 
 class ModelInfoResponse(BaseModel):
     """Serialized evaluation metrics consumed by the UI."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     model_version: str
     rf_recall: float
@@ -92,6 +102,8 @@ class ModelInfoResponse(BaseModel):
 class PreprocessResponse(BaseModel):
     """Debug response for a preprocessing-only run."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     output_path: str
     rows: int
     columns: int
@@ -99,6 +111,8 @@ class PreprocessResponse(BaseModel):
 
 class ReportResponse(BaseModel):
     """Full agentic lending response."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     applicant_id: str
     prediction: PredictionResponse

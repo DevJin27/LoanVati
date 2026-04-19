@@ -1,0 +1,15 @@
+{
+  "applicant_id": "TEST-001",
+  "features": {
+    "AMT_INCOME_TOTAL": 180000.0,
+    "AMT_CREDIT": 500000.0,
+    "AMT_ANNUITY": 42000.0,
+    "CNT_FAM_MEMBERS": 2.0,
+    "DAYS_BIRTH": -12000.0,
+    "DAYS_EMPLOYED": -2500.0,
+    "NAME_INCOME_TYPE": "Working",
+    "NAME_EDUCATION_TYPE": "Higher education",
+    "NAME_FAMILY_STATUS": "Married",
+    "NAME_HOUSING_TYPE": "House / apartment"
+  }
+}
