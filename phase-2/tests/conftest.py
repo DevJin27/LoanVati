@@ -40,3 +40,16 @@ def bureau_sample() -> pd.DataFrame:
             "AMT_CREDIT_SUM_OVERDUE",
         ],
     )
+
+
+@pytest.fixture(scope="session")
+def models_dir(phase2_root: Path) -> Path:
+    """Return the trained models directory."""
+    return phase2_root / "models"
+
+
+@pytest.fixture(scope="session")
+def sample_feature_dict(raw_application_sample: pd.DataFrame) -> dict:
+    """Build a realistic partial borrower payload from the raw application table."""
+    row = raw_application_sample.drop(columns=["TARGET"]).iloc[0]
+    return row.where(pd.notnull(row), None).to_dict()

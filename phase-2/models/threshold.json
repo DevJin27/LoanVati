@@ -1,0 +1,5 @@
+{
+  "threshold": 0.33,
+  "max_fpr": 0.35,
+  "model_version": "rf_v2.0"
+}

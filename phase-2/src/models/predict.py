@@ -1,1 +1,101 @@
-"""Prediction utilities placeholder."""
+"""Inference wrapper for the trained Credit Risk AI model."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import joblib
+import numpy as np
+import pandas as pd
+
+
+class CreditRiskPredictor:
+    """Load the trained RF pipeline once and expose a single predict interface."""
+
+    def __init__(self, models_path: str | Path = "models") -> None:
+        self.models_path = Path(models_path)
+        self.rf_pipeline = joblib.load(self.models_path / "rf_pipeline.joblib")
+        self.preprocessor_bundle = joblib.load(self.models_path / "preprocessor.joblib")
+        self.shap_bundle = joblib.load(self.models_path / "shap_explainer.joblib")
+        self.shap_explainer = self.shap_bundle["explainer"]
+        self.transformed_feature_names = self.shap_bundle["transformed_feature_names"]
+
+        with (self.models_path / "threshold.json").open("r", encoding="utf-8") as handle:
+            threshold_payload = json.load(handle)
+        self.threshold = float(threshold_payload["threshold"])
+        self.model_version = threshold_payload.get("model_version", "rf_v2.0")
+
+        self.feature_names = list(
+            getattr(self.rf_pipeline, "feature_names_in_", self.preprocessor_bundle["feature_names"])
+        )
+
+    def _align_features(self, feature_dict: dict) -> pd.DataFrame:
+        """Align partial borrower input to the exact schema seen during training."""
+        aligned = pd.DataFrame([feature_dict])
+        for feature_name in self.feature_names:
+            if feature_name not in aligned.columns:
+                aligned[feature_name] = np.nan
+        aligned = aligned.reindex(columns=self.feature_names)
+        return aligned
+
+    def _extract_shap_values(self, transformed_row: object) -> np.ndarray:
+        """Normalize SHAP output formats across sklearn/shap versions."""
+        shap_values = self.shap_explainer.shap_values(transformed_row)
+        if isinstance(shap_values, list):
+            return np.asarray(shap_values[1])[0]
+
+        array = np.asarray(shap_values)
+        if array.ndim == 3:
+            if array.shape[-1] > 1:
+                return array[0, :, 1]
+            return array[0, :, 0]
+        if array.ndim == 2:
+            return array[0]
+        raise ValueError("Unexpected SHAP output shape")
+
+    def _top_features(self, transformed_row: object) -> list[dict[str, object]]:
+        """Return the five most influential transformed features for the current row."""
+        shap_values = self._extract_shap_values(transformed_row)
+        ranked_indexes = np.argsort(np.abs(shap_values))[-5:][::-1]
+
+        top_features: list[dict[str, object]] = []
+        for index in ranked_indexes:
+            shap_value = float(shap_values[index])
+            top_features.append(
+                {
+                    "feature": self.transformed_feature_names[index],
+                    "shap_value": round(shap_value, 4),
+                    "direction": "increases risk"
+                    if shap_value >= 0
+                    else "decreases risk",
+                }
+            )
+        return top_features
+
+    def predict(self, feature_dict: dict) -> dict[str, object]:
+        """Score a borrower and explain the decision with SHAP feature impacts."""
+        aligned_features = self._align_features(feature_dict)
+        probability = float(self.rf_pipeline.predict_proba(aligned_features)[:, 1][0])
+
+        if abs(probability - self.threshold) < 0.10:
+            risk_class = "Uncertain — Manual Review Required"
+        elif probability < 0.30:
+            risk_class = "Low"
+        elif probability < 0.60:
+            risk_class = "Medium"
+        else:
+            risk_class = "High"
+
+        transformed_row = self.rf_pipeline.named_steps["preprocessor"].transform(
+            aligned_features
+        )
+        top_features = self._top_features(transformed_row)
+
+        return {
+            "risk_score": round(probability, 4),
+            "risk_class": risk_class,
+            "confidence": round(float(max(probability, 1 - probability)), 4),
+            "top_features": top_features,
+            "model_version": self.model_version,
+        }
