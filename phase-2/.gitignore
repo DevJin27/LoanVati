@@ -1,0 +1,24 @@
+/Data\ /
+/data/processed/*
+!/data/processed/.gitkeep
+/.env
+/.env.local
+/.env.*.local
+/.venv/
+/venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+/models/*.joblib
+/rag/faiss_index.bin
+/rag/metadata.json
+logs/
+*.log
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+!.env.example
