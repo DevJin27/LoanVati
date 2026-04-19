@@ -1,10 +1,10 @@
-name: CI Placeholder
+name: Phase-2 CI
 
 on:
   workflow_dispatch:
 
 jobs:
-  noop:
+  template:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Workflow placeholder"
+      - run: echo "Use the repo-root workflow in .github/workflows/ci.yml"

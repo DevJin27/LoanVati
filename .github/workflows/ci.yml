@@ -1,0 +1,58 @@
+name: CI — Lint & Test
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "phase-2/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "phase-2/**"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: phase-2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('phase-2/requirements*.txt') }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Build RAG index
+        run: python rag/build_index.py
+
+      - name: Lint with ruff
+        run: ruff check src tests app.py
+
+      - name: Run tests
+        env:
+          GROQ_API_KEY: "mock_key_for_ci"
+          API_SECRET_KEY: "ci_test_secret"
+        run: |
+          pytest tests/ -v --tb=short -x | tee test_results.txt
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-test-results
+          path: phase-2/test_results.txt
