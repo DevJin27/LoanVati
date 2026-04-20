@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import time
+import importlib
 
 from langchain_groq import ChatGroq
 
@@ -30,10 +31,24 @@ REGULATORY_FALLBACK = {
 }
 
 
+def _get_groq_api_key() -> str | None:
+    """Resolve GROQ API key from environment or Streamlit secrets."""
+    env_key = os.getenv("GROQ_API_KEY")
+    if env_key:
+        return env_key
+
+    try:
+        st = importlib.import_module("streamlit")
+        secret_value = st.secrets.get("GROQ_API_KEY")
+        return str(secret_value) if secret_value else None
+    except Exception:
+        return None
+
+
 def get_llm() -> ChatGroq:
     """Return the configured Groq client with deterministic settings."""
     return ChatGroq(
-        groq_api_key=os.getenv("GROQ_API_KEY"),
+        groq_api_key=_get_groq_api_key(),
         model="llama-3.1-8b-instant",
         temperature=0.0,
         max_tokens=1_500,
@@ -49,8 +64,8 @@ def _state_copy(state: AgentState) -> dict:
 
 def _invoke_prompt(system_prompt: str, user_prompt: str) -> str:
     """Call the LLM with two retries and exponential backoff."""
-    if not os.getenv("GROQ_API_KEY"):
-        raise RuntimeError("Missing GROQ_API_KEY environment variable")
+    if not _get_groq_api_key():
+        raise RuntimeError("Missing GROQ_API_KEY (set env var or Streamlit secret)")
 
     last_error: Exception | None = None
     for attempt in range(3):
