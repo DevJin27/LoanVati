@@ -42,6 +42,17 @@ def render_error_banner(message: str) -> None:
     st.error(f"Warning: {message}")
 
 
+def render_model_artifact_error(details: str | None = None) -> None:
+    """Display a deployment-focused message for missing trained artifacts."""
+    st.error(
+        "Model artifacts are missing in this deployment. On Render, generate and commit "
+        "rf_pipeline.joblib, preprocessor.joblib, and shap_explainer.joblib, or add a "
+        "build step that creates them before the app starts."
+    )
+    if details:
+        st.caption(f"Details: {details}")
+
+
 def render_feature_importance_chart(top_features: list[dict]) -> None:
     """Plot a horizontal SHAP bar chart with risk direction colors."""
     if not top_features:

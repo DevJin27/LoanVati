@@ -12,6 +12,7 @@ from src.preprocessing.dataset import PHASE_ROOT
 from src.ui.components import (
     build_manual_feature_input,
     render_feature_importance_chart,
+    render_model_artifact_error,
     render_progress_steps,
     render_risk_badge,
 )
@@ -80,12 +81,7 @@ def render_agent_tab() -> None:
         try:
             prediction = get_predictor().predict(borrower_data)
         except FileNotFoundError as exc:
-            st.error(
-                "Model artifacts are missing. Run `python src/models/train.py` to generate "
-                "`rf_pipeline.joblib`, `preprocessor.joblib`, and `shap_explainer.joblib` in "
-                "the models folder."
-            )
-            st.caption(f"Details: {exc}")
+            render_model_artifact_error(str(exc))
             return
         st.session_state["agent_result"] = {
             "prediction": prediction,

@@ -14,6 +14,7 @@ from src.ui.components import (
     load_eval_metrics,
     render_confusion_matrix,
     render_feature_importance_chart,
+    render_model_artifact_error,
     render_progress_steps,
     render_risk_badge,
     render_roc_curve,
@@ -69,12 +70,7 @@ def render_ml_tab() -> None:
             st.session_state["ml_result"] = get_predictor().predict(selected_features)
         except FileNotFoundError as exc:
             progress_placeholder.empty()
-            st.error(
-                "Model artifacts are missing. Run `python src/models/train.py` to generate "
-                "`rf_pipeline.joblib`, `preprocessor.joblib`, and `shap_explainer.joblib` in "
-                "the models folder."
-            )
-            st.caption(f"Details: {exc}")
+            render_model_artifact_error(str(exc))
             return
         progress_placeholder.empty()
 

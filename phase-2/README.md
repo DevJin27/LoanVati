@@ -70,6 +70,14 @@ python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
 python src/preprocessing/pipeline.py && python src/models/train.py && streamlit run app.py
 ```
 
+## Render Deployment
+If you deploy this app on Render, make sure the trained artifacts are included in the repository or generated during the build step:
+- `models/rf_pipeline.joblib`
+- `models/preprocessor.joblib`
+- `models/shap_explainer.joblib`
+
+Render can only load those files if they exist in the deployed filesystem, so the repo must not ignore them.
+
 ## API Keys
 Copy `.env.example` to `.env`, then fill in:
 - `GROQ_API_KEY`
