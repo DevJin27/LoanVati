@@ -230,7 +230,15 @@ def report_node(state: AgentState) -> dict:
     for attempt in range(2):
         try:
             response = _invoke_prompt(REPORT_NODE_SYSTEM, user_prompt)
-            report = json.loads(response)
+            
+            cleaned_response = response.strip()
+            if cleaned_response.startswith("```json"):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.endswith("```"):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+
+            report = json.loads(cleaned_response)
             
             # Forcibly inject the raw sources natively so the LLM doesn't have to guess or mis-capitalize
             report["sources"] = [
@@ -250,6 +258,10 @@ def report_node(state: AgentState) -> dict:
             if attempt == 0:
                 user_prompt += "\nReturn only valid JSON with the required schema."
                 continue
+            
+            with open("/tmp/report_fallback_error.log", "w") as f:
+                f.write(f"Exception: {repr(exc)}\n\nRAW RESPONSE:\n{response}")
+
             update["final_report"] = _fallback_report(state)
             update["error_flags"].append(f"REPORT_NODE_ERROR: {exc}")
             update["processing_steps"].append("ReportNode: FALLBACK")
