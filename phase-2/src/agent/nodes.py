@@ -33,7 +33,7 @@ REGULATORY_FALLBACK = {
 def get_llm() -> ChatGroq:
     """Return the configured Groq client with deterministic settings."""
     return ChatGroq(
-        api_key=os.getenv("GROQ_API_KEY"),
+        groq_api_key=os.getenv("GROQ_API_KEY"),
         model="llama-3.1-8b-instant",
         temperature=0.0,
         max_tokens=1_500,
@@ -49,6 +49,9 @@ def _state_copy(state: AgentState) -> dict:
 
 def _invoke_prompt(system_prompt: str, user_prompt: str) -> str:
     """Call the LLM with two retries and exponential backoff."""
+    if not os.getenv("GROQ_API_KEY"):
+        raise RuntimeError("Missing GROQ_API_KEY environment variable")
+
     last_error: Exception | None = None
     for attempt in range(3):
         try:
@@ -227,9 +230,11 @@ def report_node(state: AgentState) -> dict:
         retrieved_docs_json=json.dumps(state["retrieved_docs"], indent=2, default=str),
     )
 
+    last_response = ""
     for attempt in range(2):
         try:
             response = _invoke_prompt(REPORT_NODE_SYSTEM, user_prompt)
+            last_response = response
             
             cleaned_response = response.strip()
             if cleaned_response.startswith("```json"):
@@ -260,7 +265,7 @@ def report_node(state: AgentState) -> dict:
                 continue
             
             with open("/tmp/report_fallback_error.log", "w") as f:
-                f.write(f"Exception: {repr(exc)}\n\nRAW RESPONSE:\n{response}")
+                f.write(f"Exception: {repr(exc)}\n\nRAW RESPONSE:\n{last_response}")
 
             update["final_report"] = _fallback_report(state)
             update["error_flags"].append(f"REPORT_NODE_ERROR: {exc}")
