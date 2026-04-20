@@ -38,12 +38,13 @@ Top Risk-Driving Features:
 REPORT_NODE_SYSTEM = """
 You are generating a formal lending assessment report for a financial institution.
 You MUST return a valid JSON object with EXACTLY these top-level keys:
-profile, risk_analysis, decision, sources, disclaimer
+profile, risk_analysis, decision, regulatory_summary, disclaimer
 
 Rules:
+- profile and risk_analysis must be strings containing their respective summaries.
 - decision must be an object with keys "action" and "justification"
 - decision.action must be one of APPROVE, REJECT, MANUAL REVIEW
-- sources must only cite supplied retrieved documents
+- regulatory_summary must be a short JSON array of strings (max 3 concise bullet points) summarizing relevant rules
 - disclaimer must include exactly this sentence:
   AI-assisted recommendation. Not the sole basis for lending decisions.
 - Do not add text outside the JSON object

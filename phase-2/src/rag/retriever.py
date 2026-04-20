@@ -22,6 +22,10 @@ class FAISSRetriever:
         self.index_path = Path(index_path)
         self.metadata_path = Path(metadata_path)
         if not self.index_path.exists() or not self.metadata_path.exists():
+            import sys as _sys
+            _project_root = str(PHASE_ROOT)
+            if _project_root not in _sys.path:
+                _sys.path.insert(0, _project_root)
             from rag.build_index import build_index
 
             build_index()

@@ -11,10 +11,7 @@ from src.models.predict import CreditRiskPredictor
 from src.preprocessing.dataset import PHASE_ROOT
 from src.ui.components import (
     build_manual_feature_input,
-    load_uploaded_dataframe,
-    render_error_banner,
     render_feature_importance_chart,
-    render_preview_table,
     render_progress_steps,
     render_risk_badge,
 )
@@ -76,42 +73,27 @@ def _run_agent_with_progress(borrower_data: dict, prediction: dict) -> dict:
 def render_agent_tab() -> None:
     """Render the AI lending report workflow."""
     st.subheader("Input")
-    uploaded_file = st.file_uploader(
-        "Upload applicant CSV (.csv)",
-        type=["csv"],
-        key="agent_uploader",
-    )
+    st.caption("Use sliders and textboxes to enter borrower details.")
+    borrower_data = build_manual_feature_input(prefix="agent")
 
-    borrower_data = None
-    if uploaded_file is not None:
+    if st.button("Generate Lending Report", type="primary"):
         try:
-            dataframe, missing_columns = load_uploaded_dataframe(uploaded_file)
-            if missing_columns:
-                render_error_banner(
-                    f"Missing required columns: {', '.join(missing_columns)}"
-                )
-            else:
-                st.success(f"File loaded: {len(dataframe)} rows, {len(dataframe.columns)} columns")
-                render_preview_table(dataframe)
-                borrower_data = dataframe.iloc[0].where(dataframe.iloc[0].notna(), None).to_dict()
-                st.caption("Using the first uploaded row for report generation.")
-        except Exception as exc:
-            render_error_banner(str(exc))
-
-    with st.expander("Enter borrower details manually"):
-        manual_features = build_manual_feature_input()
-        if borrower_data is None:
-            borrower_data = manual_features
-
-    if st.button("Generate Lending Report", type="primary", disabled=borrower_data is None):
-        prediction = get_predictor().predict(borrower_data)
+            prediction = get_predictor().predict(borrower_data)
+        except FileNotFoundError as exc:
+            st.error(
+                "Model artifacts are missing. Run `python src/models/train.py` to generate "
+                "`rf_pipeline.joblib`, `preprocessor.joblib`, and `shap_explainer.joblib` in "
+                "the models folder."
+            )
+            st.caption(f"Details: {exc}")
+            return
         st.session_state["agent_result"] = {
             "prediction": prediction,
             "state": _run_agent_with_progress(borrower_data, prediction),
         }
 
     result = st.session_state.get("agent_result")
-    if not result:
+    if result is None:
         return
 
     prediction = result["prediction"]
@@ -138,22 +120,24 @@ def render_agent_tab() -> None:
         "APPROVE": "#dcfce7",
         "REJECT": "#fee2e2",
         "MANUAL REVIEW": "#fef3c7",
-    }[decision_action]
+    }.get(decision_action, "#fef3c7")
     st.markdown(
         f"""
-        <div style="background:{decision_color};padding:16px;border-radius:12px;margin:12px 0;">
-            <h3 style="margin:0;">{decision_action}</h3>
+        <div style="background:{decision_color};padding:16px;border-radius:12px;margin:12px 0;color:#1f2937;">
+            <h3 style="margin:0;color:#1f2937;">{decision_action}</h3>
             <p style="margin:8px 0 0 0;">{decision.get('justification', 'No justification available.')}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    with st.expander("Regulatory Sources", expanded=True):
-        for source in report.get("sources", []):
-            st.markdown(
-                f"- **{source['title']}** | {source['section_id']} | relevance `{source['score']}`"
-            )
+    with st.expander("Regulatory Summary", expanded=True):
+        if "regulatory_summary" in report:
+            for point in report["regulatory_summary"]:
+                st.markdown(f"- {point}")
+        else:
+            for source in report.get("sources", []):
+                st.markdown(f"- **{source['title']}** | relevance `{source['score']}`")
 
     st.markdown(
         f"*{report.get('disclaimer', 'AI-assisted recommendation. Not the sole basis for lending decisions.')}*"

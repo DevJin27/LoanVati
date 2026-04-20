@@ -5,11 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.api.schemas import REQUIRED_FEATURES
 from src.preprocessing.dataset import PHASE_ROOT
 
 
@@ -104,54 +102,82 @@ def render_roc_curve(fpr: list, tpr: list, auc_score: float) -> None:
     st.plotly_chart(figure, use_container_width=True)
 
 
-def load_uploaded_dataframe(uploaded_file) -> tuple[pd.DataFrame | None, list[str]]:
-    """Load a CSV upload and return any missing required columns."""
-    if uploaded_file is None:
-        return None, []
-    if not uploaded_file.name.lower().endswith(".csv"):
-        raise ValueError("Only CSV files are supported.")
-
-    dataframe = pd.read_csv(uploaded_file)
-    missing = [column for column in REQUIRED_FEATURES if column not in dataframe.columns]
-    return dataframe, missing
-
-
-def render_preview_table(dataframe: pd.DataFrame) -> None:
-    """Display a trimmed preview of the uploaded data."""
-    preview = dataframe.head(5).copy()
-    preview.columns = [column[:24] for column in preview.columns]
-    st.dataframe(preview, use_container_width=True)
-
-
 def load_eval_metrics() -> dict:
     """Load persisted evaluation metrics from disk."""
     metrics_path = PHASE_ROOT / "models" / "eval_metrics.json"
     return json.loads(metrics_path.read_text())
 
 
-def build_manual_feature_input() -> dict:
-    """Render a compact manual entry form and return borrower features."""
-    return {
-        "AMT_INCOME_TOTAL": st.number_input("Annual Income", min_value=1.0, value=180000.0),
-        "AMT_CREDIT": st.number_input("Requested Credit", min_value=1.0, value=500000.0),
-        "AMT_ANNUITY": st.number_input("Annuity", min_value=1.0, value=42000.0),
-        "CNT_FAM_MEMBERS": st.number_input("Family Members", min_value=1.0, value=2.0),
-        "DAYS_BIRTH": st.number_input("Days Since Birth", value=-12000.0),
-        "DAYS_EMPLOYED": st.number_input("Days Employed", value=-2500.0),
-        "NAME_INCOME_TYPE": st.selectbox(
+def build_manual_feature_input(prefix: str = "manual") -> dict:
+    """Render structured controls and return borrower features."""
+    import datetime
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Financial Profile")
+        amt_income_total = st.number_input(
+            "Annual Income", min_value=10_000.0, max_value=2_000_000.0, value=180_000.0, step=5000.0, key=f"{prefix}_amt_income"
+        )
+        amt_credit = st.number_input(
+            "Requested Credit", min_value=10_000.0, max_value=5_000_000.0, value=500_000.0, step=10000.0, key=f"{prefix}_amt_credit"
+        )
+        amt_annuity = st.number_input(
+            "Annuity", min_value=1_000.0, max_value=500_000.0, value=42_000.0, step=1000.0, key=f"{prefix}_amt_annuity"
+        )
+        name_income_type = st.selectbox(
             "Income Type",
-            ["Working", "Commercial associate", "State servant", "Pensioner"],
-        ),
-        "NAME_EDUCATION_TYPE": st.selectbox(
+            options=["Working", "State servant", "Commercial associate", "Pensioner", "Unemployed", "Student", "Businessman", "Maternity leave"],
+            index=0,
+            key=f"{prefix}_income_type",
+        )
+        years_employed = st.number_input(
+            "Years Employed", min_value=0.0, max_value=50.0, value=5.0, step=0.5, key=f"{prefix}_years_employed"
+        )
+
+    with col2:
+        st.subheader("Demographics")
+        dob = st.date_input(
+            "Date of Birth",
+            value=datetime.date.today() - datetime.timedelta(days=12000),
+            min_value=datetime.date.today() - datetime.timedelta(days=30000),
+            max_value=datetime.date.today() - datetime.timedelta(days=6500),
+            key=f"{prefix}_dob",
+        )
+        name_education_type = st.selectbox(
             "Education Type",
-            ["Higher education", "Secondary / secondary special", "Incomplete higher"],
-        ),
-        "NAME_FAMILY_STATUS": st.selectbox(
+            options=["Secondary / secondary special", "Higher education", "Incomplete higher", "Lower secondary", "Academic degree"],
+            index=1,
+            key=f"{prefix}_education_type",
+        )
+        name_family_status = st.selectbox(
             "Family Status",
-            ["Married", "Single / not married", "Civil marriage"],
-        ),
-        "NAME_HOUSING_TYPE": st.selectbox(
+            options=["Single / not married", "Married", "Civil marriage", "Widow", "Separated", "Unknown"],
+            index=1,
+            key=f"{prefix}_family_status",
+        )
+        name_housing_type = st.selectbox(
             "Housing Type",
-            ["House / apartment", "With parents", "Rented apartment"],
-        ),
+            options=["House / apartment", "Rented apartment", "With parents", "Municipal apartment", "Office apartment", "Co-op apartment"],
+            index=0,
+            key=f"{prefix}_housing_type",
+        )
+        cnt_fam_members = st.number_input(
+            "Family Members", min_value=1, max_value=20, value=2, step=1, key=f"{prefix}_fam_members"
+        )
+
+    days_birth = (dob - datetime.date.today()).days
+    days_employed = int(-years_employed * 365)
+
+    return {
+        "AMT_INCOME_TOTAL": float(amt_income_total),
+        "AMT_CREDIT": float(amt_credit),
+        "AMT_ANNUITY": float(amt_annuity),
+        "CNT_FAM_MEMBERS": float(cnt_fam_members),
+        "DAYS_BIRTH": float(days_birth),
+        "DAYS_EMPLOYED": float(days_employed),
+        "NAME_INCOME_TYPE": name_income_type.strip(),
+        "NAME_EDUCATION_TYPE": name_education_type.strip(),
+        "NAME_FAMILY_STATUS": name_family_status.strip(),
+        "NAME_HOUSING_TYPE": name_housing_type.strip(),
     }

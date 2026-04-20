@@ -34,7 +34,7 @@ def get_llm() -> ChatGroq:
     """Return the configured Groq client with deterministic settings."""
     return ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
-        model="llama3-8b-8192",
+        model="llama-3.1-8b-instant",
         temperature=0.0,
         max_tokens=1_500,
     )
@@ -82,9 +82,9 @@ def _fallback_risk_analysis(state: AgentState) -> tuple[str, str]:
 
 
 def _validate_report(report: dict, retrieved_docs: list[dict]) -> None:
-    required_keys = {"profile", "risk_analysis", "decision", "sources", "disclaimer"}
-    if set(report.keys()) != required_keys:
-        raise ValueError("Report JSON is missing required keys")
+    required_keys = {"profile", "risk_analysis", "decision", "regulatory_summary", "sources", "disclaimer"}
+    if not required_keys.issubset(report.keys()):
+        raise ValueError(f"Report JSON is missing required keys: {required_keys - set(report.keys())}")
 
     decision = report.get("decision", {})
     if decision.get("action") not in {"APPROVE", "REJECT", "MANUAL REVIEW"}:
@@ -93,7 +93,8 @@ def _validate_report(report: dict, retrieved_docs: list[dict]) -> None:
     allowed_sources = {item["source_name"] for item in retrieved_docs}
     for source in report.get("sources", []):
         if source.get("title") not in allowed_sources:
-            raise ValueError("Report cited a source that was not retrieved")
+            # We construct `sources` natively now, so this shouldn't fail, but we keep it for integrity
+            raise ValueError(f"Report cited a source that was not retrieved: {source.get('title')}")
 
     disclaimer = report.get("disclaimer", "")
     required_disclaimer = "AI-assisted recommendation. Not the sole basis for lending decisions."
@@ -126,6 +127,10 @@ def _fallback_report(state: AgentState) -> dict:
                 "score": item["score"],
             }
             for item in state.get("retrieved_docs", [])
+        ],
+        "regulatory_summary": [
+            "Could not parse comprehensive regulatory compliance from LLM.",
+            "Please review the explicit source paragraphs manually."
         ],
         "disclaimer": "AI-assisted recommendation. Not the sole basis for lending decisions.",
     }
@@ -226,6 +231,17 @@ def report_node(state: AgentState) -> dict:
         try:
             response = _invoke_prompt(REPORT_NODE_SYSTEM, user_prompt)
             report = json.loads(response)
+            
+            # Forcibly inject the raw sources natively so the LLM doesn't have to guess or mis-capitalize
+            report["sources"] = [
+                {
+                    "title": item["source_name"],
+                    "section_id": item["section_id"],
+                    "score": item["score"],
+                }
+                for item in state.get("retrieved_docs", [])
+            ]
+            
             _validate_report(report, state["retrieved_docs"])
             update["final_report"] = report
             update["processing_steps"].append("ReportNode: OK")
