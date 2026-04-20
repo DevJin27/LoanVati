@@ -22,3 +22,5 @@ logs/
 Thumbs.db
 .ipynb_checkpoints/
 !.env.example
+Data/
+data/processed/

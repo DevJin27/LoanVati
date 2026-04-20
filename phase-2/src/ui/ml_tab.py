@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-n.
+
 import plotly.graph_objects as go
 import streamlit as st
 
