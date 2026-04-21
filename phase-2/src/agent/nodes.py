@@ -7,6 +7,7 @@ import os
 import time
 import importlib
 
+import streamlit as st
 from langchain_groq import ChatGroq
 
 from src.agent.prompts import (
@@ -46,12 +47,18 @@ def _get_groq_api_key() -> str | None:
 
 
 def get_llm() -> ChatGroq:
-    """Return the configured Groq client with deterministic settings."""
+    """Return the configured Groq client with deterministic settings.
+
+    Model: llama-3.3-70b-versatile
+    - Groq free tier, same API key as the 8B model
+    - Significantly better JSON schema adherence and instruction following
+    - Fixes profile text garbling caused by the 8B model hitting token limits mid-sentence
+    """
     return ChatGroq(
         groq_api_key=_get_groq_api_key(),
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         temperature=0.0,
-        max_tokens=1_500,
+        max_tokens=2_048,
     )
 
 
@@ -191,7 +198,17 @@ def risk_node(state: AgentState) -> dict:
     for attempt in range(2):
         try:
             response = _invoke_prompt(RISK_NODE_SYSTEM, user_prompt)
-            payload = json.loads(response)
+            
+            cleaned_response = response.strip()
+            if cleaned_response.startswith("```json"):
+                cleaned_response = cleaned_response[7:]
+            elif cleaned_response.startswith("```"):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith("```"):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+
+            payload = json.loads(cleaned_response)
             update["risk_analysis"] = payload["risk_analysis"]
             update["retrieval_query"] = payload["retrieval_query"]
             update["processing_steps"].append("RiskNode: OK")
@@ -210,11 +227,22 @@ def risk_node(state: AgentState) -> dict:
     return update
 
 
+@st.cache_resource(show_spinner="Loading regulatory index...")
+def _get_retriever() -> "FAISSRetriever":
+    """Load the FAISS retriever once and cache it for the lifetime of the
+    Streamlit session.  Re-creating it on every agent run causes PyTorch to
+    reload the SentenceTransformer model each time, which segfaults on
+    Apple Silicon when the process tries to clean up the multiprocessing
+    semaphores that sentence-transformers internally allocates.
+    """
+    return FAISSRetriever()
+
+
 def rag_node(state: AgentState) -> dict:
     """Retrieve relevant regulatory context without using the LLM."""
     update = _state_copy(state)
     try:
-        retriever = FAISSRetriever()
+        retriever = _get_retriever()
         results = retriever.query(state["retrieval_query"], top_k=3)
         if not results:
             update["retrieved_docs"] = [REGULATORY_FALLBACK]
@@ -254,6 +282,8 @@ def report_node(state: AgentState) -> dict:
             cleaned_response = response.strip()
             if cleaned_response.startswith("```json"):
                 cleaned_response = cleaned_response[7:]
+            elif cleaned_response.startswith("```"):
+                cleaned_response = cleaned_response[3:]
             if cleaned_response.endswith("```"):
                 cleaned_response = cleaned_response[:-3]
             cleaned_response = cleaned_response.strip()

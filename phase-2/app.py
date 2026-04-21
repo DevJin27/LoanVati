@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import os
+
+# Must be set BEFORE any torch/transformers imports to prevent
+# multiprocessing deadlocks and segfaults on Mac Apple Silicon.
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
 from dotenv import load_dotenv
 import streamlit as st
 
-load_dotenv()
+load_dotenv(override=True)
 
 st.set_page_config(
     page_title="Credit Risk AI — Intelligent Lending Decisions",

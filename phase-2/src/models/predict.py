@@ -11,7 +11,12 @@ import pandas as pd
 
 
 class CreditRiskPredictor:
-    """Load the trained RF pipeline once and expose a single predict interface."""
+    """Load the trained CatBoost pipeline once and expose a single predict interface.
+
+    The artifact filename (rf_pipeline.joblib) is intentionally unchanged —
+    renaming it would break the Render deployment. The underlying model is
+    now CatBoost (catboost_v2.0), targeting ~0.80 ROC-AUC on Home Credit.
+    """
 
     def __init__(self, models_path: str | Path = "models") -> None:
         self.models_path = Path(models_path)
@@ -24,7 +29,7 @@ class CreditRiskPredictor:
         with (self.models_path / "threshold.json").open("r", encoding="utf-8") as handle:
             threshold_payload = json.load(handle)
         self.threshold = float(threshold_payload["threshold"])
-        self.model_version = threshold_payload.get("model_version", "rf_v2.0")
+        self.model_version = threshold_payload.get("model_version", "catboost_v2.0")
 
         self.feature_names = list(
             getattr(self.rf_pipeline, "feature_names_in_", self.preprocessor_bundle["feature_names"])
@@ -54,6 +59,46 @@ class CreditRiskPredictor:
             return array[0]
         raise ValueError("Unexpected SHAP output shape")
 
+    @staticmethod
+    def _clean_feature_name(raw_name: str) -> str:
+        """Convert sklearn pipeline feature names to human-readable labels.
+
+        Examples:
+            categorical_low__NAME_EDUCATION_TYPE_Higher education
+                -> Education Type: Higher Education
+            numeric__DAYS_BIRTH  -> Age (Days)
+            numeric__EXT_SOURCE_2 -> External Score 2
+            numeric__AMT_CREDIT   -> Credit Amount
+        """
+        # Strip transformer prefix (numeric__, categorical_low__, categorical_high__)
+        name = raw_name
+        for prefix in ("numeric__", "categorical_low__", "categorical_high__"):
+            if name.startswith(prefix):
+                name = name[len(prefix):]
+                break
+
+        # Known field renames for clarity
+        RENAMES = {
+            "DAYS_BIRTH": "Applicant Age",
+            "DAYS_EMPLOYED": "Employment Duration",
+            "AMT_CREDIT": "Credit Amount",
+            "AMT_INCOME_TOTAL": "Annual Income",
+            "AMT_ANNUITY": "Annual Annuity",
+            "EXT_SOURCE_1": "External Credit Score 1",
+            "EXT_SOURCE_2": "External Credit Score 2",
+            "EXT_SOURCE_3": "External Credit Score 3",
+            "CNT_FAM_MEMBERS": "Family Members",
+        }
+
+        # Check if the base column (before any OHE suffix) is in RENAMES
+        for key, label in RENAMES.items():
+            if name == key or name.startswith(key + "_"):
+                suffix = name[len(key):].replace("_", " ").strip()
+                return f"{label}: {suffix}" if suffix else label
+
+        # Generic: replace underscores, title-case
+        return name.replace("_", " ").title()
+
     def _top_features(self, transformed_row: object) -> list[dict[str, object]]:
         """Return the five most influential transformed features for the current row."""
         shap_values = self._extract_shap_values(transformed_row)
@@ -62,9 +107,10 @@ class CreditRiskPredictor:
         top_features: list[dict[str, object]] = []
         for index in ranked_indexes:
             shap_value = float(shap_values[index])
+            raw_name = self.transformed_feature_names[index]
             top_features.append(
                 {
-                    "feature": self.transformed_feature_names[index],
+                    "feature": self._clean_feature_name(raw_name),
                     "shap_value": round(shap_value, 4),
                     "direction": "increases risk"
                     if shap_value >= 0

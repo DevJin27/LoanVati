@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import re
 
 import streamlit as st
 
@@ -71,6 +72,38 @@ def _run_agent_with_progress(borrower_data: dict, prediction: dict) -> dict:
     return state
 
 
+def _clean_prose(text: str) -> str:
+    """Strip LLM formatting artifacts from plain-text responses.
+
+    Llama 3.3 sometimes wraps the whole response in double-quotes or
+    italic markers (*...*) which Streamlit's markdown engine renders as
+    cursive text with collapsed word spaces.
+    """
+    text = text.strip()
+    # Remove surrounding double or single quotes
+    if (text.startswith('"') and text.endswith('"')) or (
+        text.startswith("'") and text.endswith("'")
+    ):
+        text = text[1:-1].strip()
+    # Remove wrapping * or ** (italic / bold)
+    text = re.sub(r'^\*{1,2}(.+?)\*{1,2}$', r'\1', text, flags=re.DOTALL)
+    return text.strip()
+
+
+def _prose_html(text: str) -> str:
+    """Render cleaned prose inside an explicit HTML paragraph so Streamlit
+    cannot misinterpret the content as markdown italic / bold."""
+    cleaned = _clean_prose(text)
+    # Escape HTML special chars, then restore newlines as <br>
+    import html
+    safe = html.escape(cleaned).replace('\n', '<br>')
+    return (
+        f'<p style="font-size:0.97rem;line-height:1.75;'
+        f'font-style:normal;font-weight:400;color:inherit;">'
+        f'{safe}</p>'
+    )
+
+
 def render_agent_tab() -> None:
     """Render the AI lending report workflow."""
     st.subheader("Input")
@@ -101,43 +134,57 @@ def render_agent_tab() -> None:
 
     st.subheader("Report Display")
     with st.container(border=True):
-        st.markdown("### Borrower Profile")
-        st.write(report.get("profile", state.get("borrower_summary", "")))
+        st.markdown("### 🧑 Borrower Profile")
+        profile_text = report.get("profile", state.get("borrower_summary", ""))
+        st.markdown(_prose_html(profile_text), unsafe_allow_html=True)
 
+    st.markdown("---")
     with st.container(border=True):
-        st.markdown("### Risk Analysis")
+        st.markdown("### ⚠️ Risk Analysis")
         render_risk_badge(prediction["risk_class"])
+        st.markdown("")
         analysis = report.get("risk_analysis", state.get("risk_analysis", ""))
-        st.write(analysis)
+        st.markdown(_prose_html(analysis), unsafe_allow_html=True)
 
+    st.markdown("---")
     decision = report.get("decision", {})
     decision_action = decision.get("action", "MANUAL REVIEW")
+    decision_icon = {"APPROVE": "✅", "REJECT": "❌", "MANUAL REVIEW": "🔎"}.get(decision_action, "🔎")
     decision_color = {
         "APPROVE": "#dcfce7",
         "REJECT": "#fee2e2",
         "MANUAL REVIEW": "#fef3c7",
     }.get(decision_action, "#fef3c7")
+    decision_border = {
+        "APPROVE": "#16a34a",
+        "REJECT": "#dc2626",
+        "MANUAL REVIEW": "#d97706",
+    }.get(decision_action, "#d97706")
     st.markdown(
         f"""
-        <div style="background:{decision_color};padding:16px;border-radius:12px;margin:12px 0;color:#1f2937;">
-            <h3 style="margin:0;color:#1f2937;">{decision_action}</h3>
-            <p style="margin:8px 0 0 0;">{decision.get('justification', 'No justification available.')}</p>
+        <div style="background:{decision_color};padding:20px 24px;border-radius:12px;margin:12px 0;
+                    border-left:5px solid {decision_border};color:#1f2937;">
+            <h3 style="margin:0 0 8px 0;color:#1f2937;">{decision_icon} {decision_action}</h3>
+            <p style="margin:0;line-height:1.6;">{decision.get('justification', 'No justification available.')}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    with st.expander("Regulatory Summary", expanded=True):
-        if "regulatory_summary" in report:
+    st.markdown("---")
+    with st.expander("📋 Regulatory Summary", expanded=True):
+        if "regulatory_summary" in report and report["regulatory_summary"]:
             for point in report["regulatory_summary"]:
-                st.markdown(f"- {point}")
+                st.markdown(f"• {point}")
+        elif report.get("sources"):
+            for source in report["sources"]:
+                st.markdown(f"• **{source['title']}** (section `{source.get('section_id', 'N/A')}`) — relevance score `{source['score']:.3f}`")
         else:
-            for source in report.get("sources", []):
-                st.markdown(f"- **{source['title']}** | relevance `{source['score']}`")
+            st.info("No regulatory context was retrieved for this profile.")
 
-    st.markdown(
-        f"*{report.get('disclaimer', 'AI-assisted recommendation. Not the sole basis for lending decisions.')}*"
-    )
+    st.markdown("---")
+    disclaimer = report.get('disclaimer', 'AI-assisted recommendation. Not the sole basis for lending decisions.')
+    st.caption(f"⚖️ {disclaimer}")
 
     with st.expander("Agent Reasoning Trace"):
         for step in state["processing_steps"]:
