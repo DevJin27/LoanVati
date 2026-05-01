@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "env": {
-    "VITE_API_BASE_URL": "@vite_api_base_url"
+    "VITE_API_BASE_URL": "https://loanvati-1.onrender.com/api/v1"
   },
   "regions": ["sfo1"],
   "functions": {
