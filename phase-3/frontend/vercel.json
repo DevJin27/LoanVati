@@ -6,38 +6,10 @@
     "VITE_API_BASE_URL": "https://loanvati-1.onrender.com/api/v1"
   },
   "regions": ["sfo1"],
-  "functions": {
-    "api/**": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
-      "source": "/:path((?!api|_next/static|_next/image|favicon.ico).*)",
+      "source": "/:path((?!_next/static|_next/image|favicon.ico).*)",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
-        }
-      ]
     }
   ],
   "redirects": [],
