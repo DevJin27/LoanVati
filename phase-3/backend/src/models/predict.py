@@ -20,19 +20,34 @@ class CreditRiskPredictor:
 
     def __init__(self, models_path: str | Path = "models") -> None:
         self.models_path = Path(models_path)
-        self.rf_pipeline = joblib.load(self.models_path / "rf_pipeline.joblib")
         self.preprocessor_bundle = joblib.load(self.models_path / "preprocessor.joblib")
-        self.shap_bundle = joblib.load(self.models_path / "shap_explainer.joblib")
-        self.shap_explainer = self.shap_bundle["explainer"]
-        self.transformed_feature_names = self.shap_bundle["transformed_feature_names"]
+        self.lr_pipeline = joblib.load(self.models_path / "lr_pipeline.joblib")
+
+        # Prefer CatBoost + SHAP when available; fall back to LR-only inference
+        # so deployment does not require catboost/shap runtime wheels.
+        self.rf_pipeline = None
+        self.shap_bundle = None
+        self.shap_explainer = None
+        self.uses_shap = False
+        try:
+            self.rf_pipeline = joblib.load(self.models_path / "rf_pipeline.joblib")
+            self.shap_bundle = joblib.load(self.models_path / "shap_explainer.joblib")
+            self.shap_explainer = self.shap_bundle["explainer"]
+            self.transformed_feature_names = self.shap_bundle["transformed_feature_names"]
+            self.uses_shap = True
+        except Exception:
+            self.transformed_feature_names = self.preprocessor_bundle.get(
+                "transformed_feature_names", []
+            )
 
         with (self.models_path / "threshold.json").open("r", encoding="utf-8") as handle:
             threshold_payload = json.load(handle)
         self.threshold = float(threshold_payload["threshold"])
-        self.model_version = threshold_payload.get("model_version", "catboost_v2.0")
+        base_version = threshold_payload.get("model_version", "catboost_v2.0")
+        self.model_version = base_version if self.uses_shap else f"{base_version}_lr_fallback"
 
         self.feature_names = list(
-            getattr(self.rf_pipeline, "feature_names_in_", self.preprocessor_bundle["feature_names"])
+            self.preprocessor_bundle["feature_names"]
         )
 
     def _align_features(self, feature_dict: dict) -> pd.DataFrame:
@@ -46,6 +61,8 @@ class CreditRiskPredictor:
 
     def _extract_shap_values(self, transformed_row: object) -> np.ndarray:
         """Normalize SHAP output formats across sklearn/shap versions."""
+        if self.shap_explainer is None:
+            raise ValueError("SHAP explainer unavailable in fallback mode")
         shap_values = self.shap_explainer.shap_values(transformed_row)
         if isinstance(shap_values, list):
             return np.asarray(shap_values[1])[0]
@@ -101,28 +118,37 @@ class CreditRiskPredictor:
 
     def _top_features(self, transformed_row: object) -> list[dict[str, object]]:
         """Return the five most influential transformed features for the current row."""
-        shap_values = self._extract_shap_values(transformed_row)
-        ranked_indexes = np.argsort(np.abs(shap_values))[-5:][::-1]
+        if self.uses_shap:
+            values = self._extract_shap_values(transformed_row)
+            value_label = "shap_value"
+        else:
+            classifier = self.lr_pipeline.named_steps["classifier"]
+            coefficients = np.asarray(classifier.coef_)[0]
+            dense_row = transformed_row.toarray()[0] if hasattr(transformed_row, "toarray") else np.asarray(transformed_row)[0]
+            values = dense_row * coefficients
+            value_label = "impact"
+
+        ranked_indexes = np.argsort(np.abs(values))[-5:][::-1]
 
         top_features: list[dict[str, object]] = []
         for index in ranked_indexes:
-            shap_value = float(shap_values[index])
+            impact_value = float(values[index])
             raw_name = self.transformed_feature_names[index]
-            top_features.append(
-                {
-                    "feature": self._clean_feature_name(raw_name),
-                    "shap_value": round(shap_value, 4),
-                    "direction": "increases risk"
-                    if shap_value >= 0
-                    else "decreases risk",
-                }
-            )
+            payload = {
+                "feature": self._clean_feature_name(raw_name),
+                "direction": "increases risk" if impact_value >= 0 else "decreases risk",
+            }
+            payload[value_label] = round(impact_value, 4)
+            if value_label == "impact":
+                payload["shap_value"] = round(impact_value, 4)
+            top_features.append(payload)
         return top_features
 
     def predict(self, feature_dict: dict) -> dict[str, object]:
         """Score a borrower and explain the decision with SHAP feature impacts."""
         aligned_features = self._align_features(feature_dict)
-        probability = float(self.rf_pipeline.predict_proba(aligned_features)[:, 1][0])
+        model_pipeline = self.rf_pipeline if self.rf_pipeline is not None else self.lr_pipeline
+        probability = float(model_pipeline.predict_proba(aligned_features)[:, 1][0])
 
         if abs(probability - self.threshold) < 0.10:
             risk_class = "Uncertain — Manual Review Required"
@@ -133,7 +159,7 @@ class CreditRiskPredictor:
         else:
             risk_class = "High"
 
-        transformed_row = self.rf_pipeline.named_steps["preprocessor"].transform(
+        transformed_row = model_pipeline.named_steps["preprocessor"].transform(
             aligned_features
         )
         top_features = self._top_features(transformed_row)
