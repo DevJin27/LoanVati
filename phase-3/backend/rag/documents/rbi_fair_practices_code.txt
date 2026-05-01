@@ -1,0 +1,32 @@
+Document ID: RBI-FPC-NBFC
+Title: RBI Fair Practices Code for NBFC Lending Operations
+
+Section 1.1 - Purpose and Scope
+The Fair Practices Code for non-banking financial companies establishes the minimum conduct standards that lenders must follow while originating, appraising, servicing, and recovering loans. The purpose of the code is not merely procedural. It is designed to make sure that the borrower understands the product, the charges, the key risks, and the reasons behind the lender's decision. A compliant lender is expected to provide information in a way that is timely, understandable, and consistent across the customer journey. This includes marketing communication, application forms, sanction letters, account statements, repayment reminders, and recovery notices.
+
+Section 2.1 - Loan Application Standards
+Loan application forms must capture the information necessary for a proper credit decision and must clearly disclose the documents needed for assessment. The lender should explain what information is mandatory, what information is optional, and how the information will be used. A borrower should not be asked to sign incomplete forms or blank schedules. If credit bureau reports, bank statements, income declarations, employer records, or asset details are required, the lender should state this upfront. The application stage should also disclose processing charges, the likely turnaround time, and the manner in which decisions or delays will be communicated.
+
+Section 3.1 - Credit Appraisal Principles
+Credit appraisal must be based on a documented evaluation of the borrower's repayment capacity, stability of income, existing indebtedness, and relevant credit history. Appraisal should be proportionate to the loan product and risk profile. For smaller retail loans, this may rely on salary credits, self-employment cash flows, repayment behavior, and credit bureau records. For larger exposures, the assessment may also review leverage, collateral support, guarantor strength, or business seasonality. The key principle is that the lender should demonstrate that the final decision is supported by facts rather than arbitrary preference.
+
+Section 3.2 - Responsible Use of Credit Information
+The code expects lenders to use credit bureau information responsibly. Bureau data should be treated as an input into appraisal, not as the sole determinant. Negative bureau history should be reviewed in context, including account age, delay severity, cure behavior, and the recency of delinquency. Positive repayment history, stable account conduct, and declining leverage should also be considered. A lender that uses automated scoring should ensure that the score can be interpreted by internal decision makers and that exceptions are escalated for manual review where appropriate.
+
+Section 4.1 - Sanction Communication
+When a loan is approved, the sanction letter should state the amount, tenor, annualized interest rate, method of application of interest, installment amount if applicable, applicable fees, penal charges policy, and material conditions precedent to disbursement. Borrowers should be given the opportunity to review the terms before acceptance. Material changes after sanction should not be introduced without clear notice and lawful basis. If the loan uses floating rates or variable charges, the mechanism for revision must be transparent.
+
+Section 4.2 - Rejection Communication
+The Fair Practices Code emphasizes that rejected applicants should be informed in an appropriate manner. While detailed internal scoring models need not be disclosed, the lender should communicate the broad basis of rejection where policy permits. Common reasons may include inadequate repayment capacity, adverse credit history, insufficient documentation, or risk policy exceptions. Communication should be respectful, free of stigmatizing language, and recorded in the lender's system. The objective is to prevent opaque or arbitrary rejection practices.
+
+Section 5.1 - Interest Rate and Charge Transparency
+Interest rates and all material charges must be disclosed in a form the borrower can understand. The lender should explain whether the rate is fixed or floating, whether penal charges are applied on overdue amounts, and whether charges vary by borrower category. The board-approved interest rate model should be available internally and should support fair treatment across similarly situated customers. Excessively complex or hidden fee structures are inconsistent with the code's intent.
+
+Section 6.1 - Post-Disbursement Conduct
+Once the loan is disbursed, the lender must continue to treat the borrower fairly. Statements, reminders, and notices should be accurate and timely. Changes in terms must follow the sanction conditions and applicable law. Account servicing should allow the borrower to understand outstanding principal, accrued interest, overdue amounts, and the consequences of non-payment. If collection action becomes necessary, the lender is expected to act within law and with civility.
+
+Section 6.2 - Recovery and Customer Dignity
+Recovery agents and collection staff must avoid harassment, intimidation, or intrusive conduct. Contacts should occur at reasonable times, and conversations should remain limited to recovery-related matters. A lender should maintain oversight on outsourced recovery activity and should record complaints or allegations of misconduct. Distressed borrowers may require restructuring discussions or supervisory review before aggressive recovery measures are considered.
+
+Section 7.1 - Governance and Audit Trail
+A financial institution should maintain a clear audit trail for how the decision was reached, what documents were reviewed, which risk indicators were considered, and how communication was delivered. For AI-assisted or score-driven decisions, the code's expectations imply that institutions should preserve enough explanation to support internal review, customer grievance handling, and supervisory inspection. Human oversight remains important where the case is borderline, inconsistent, or unusually sensitive.

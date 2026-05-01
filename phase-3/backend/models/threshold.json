@@ -1,0 +1,5 @@
+{
+  "threshold": 0.43,
+  "max_fpr": 0.35,
+  "model_version": "catboost_v2.0"
+}

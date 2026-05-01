@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: loanvati-backend
+    runtime: python
+    pythonVersion: 3.10
+    region: oregon
+    plan: starter
+    buildCommand: >
+      cd phase-3/backend &&
+      pip install -r requirements.txt &&
+      alembic upgrade head
+    startCommand: >
+      cd phase-3/backend &&
+      uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: DATABASE_URL
+        scope: service
+        sync: false
+      - key: GROQ_API_KEY
+        scope: service
+        sync: false
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRE_MINUTES
+        value: 1440
+      - key: API_SECRET_KEY
+        value: ${API_SECRET_KEY}
+      - key: MODEL_VERSION
+        value: catboost_v1.2
+      - key: CORS_ORIGINS
+        value: https://loanvati-frontend.vercel.app,https://loanvati.com
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /api/v1/auth/me
+    routes:
+      - type: http
+        path: /api/v1
+
+  - type: web
+    name: loanvati-frontend
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: >
+      cd phase-3/frontend &&
+      npm ci &&
+      npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://loanvati-backend.onrender.com/api/v1
+    routes:
+      - type: http
+        path: /
+        destination: /index.html
+
+databases:
+  - name: loanvati-db
+    databaseName: loanvati_db
+    user: loanvati_user
+    region: oregon
+    plan: free

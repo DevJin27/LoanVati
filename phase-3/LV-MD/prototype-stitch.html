@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoanVati Prototype</title>
+    
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fcf8ff",
+                        "inverse-primary": "#c3c0ff",
+                        "surface-tint": "#4d44e3",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#302f39",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "risk-uncertain-text": "#92400E",
+                        "brand-hover": "#4338CA",
+                        "risk-low-text": "#065F46",
+                        "on-secondary-fixed-variant": "#454748",
+                        "on-surface": "#1b1b24",
+                        "surface": "#fcf8ff",
+                        "tertiary-container": "#a44100",
+                        "on-surface-variant": "#464555",
+                        "on-secondary-fixed": "#191c1d",
+                        "on-primary-fixed": "#0f0069",
+                        "primary": "#3525cd",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "risk-high-text": "#991B1B",
+                        "on-error-container": "#93000a",
+                        "risk-high-bg": "#FEE2E2",
+                        "border-emphasis": "#D1D5DB",
+                        "primary-container": "#4f46e5",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#eae6f4",
+                        "secondary-fixed-dim": "#c5c7c8",
+                        "secondary-container": "#e1e3e4",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#7e3000",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "text-secondary": "#6B7280",
+                        "surface-container": "#f0ecf9",
+                        "surface-container-low": "#f5f2ff",
+                        "border-default": "#E5E7EB",
+                        "risk-uncertain-border": "#FCD34D",
+                        "risk-low-border": "#6EE7B7",
+                        "on-background": "#1b1b24",
+                        "surface-container-highest": "#e4e1ee",
+                        "on-secondary-container": "#626566",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "surface-dim": "#dcd8e5",
+                        "surface-variant": "#e4e1ee",
+                        "outline": "#777587",
+                        "risk-high-border": "#FCA5A5",
+                        "on-primary-container": "#dad7ff",
+                        "on-tertiary-container": "#ffd2be",
+                        "risk-uncertain-bg": "#FEF3C7",
+                        "secondary-fixed": "#e1e3e4",
+                        "risk-low-bg": "#D1FAE5",
+                        "inverse-on-surface": "#f3effc",
+                        "tertiary-fixed": "#ffdbcc",
+                        "background": "#fcf8ff",
+                        "primary-fixed": "#e2dfff",
+                        "background-primary": "#FFFFFF",
+                        "outline-variant": "#c7c4d8",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5c5f60",
+                        "on-tertiary-fixed": "#351000",
+                        "text-primary": "#111827"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "container-max": "1024px",
+                        "form-gap": "20px",
+                        "margin-desktop": "32px",
+                        "sidebar-width": "220px",
+                        "margin-mobile": "16px",
+                        "tabbar-height": "56px",
+                        "gutter": "16px"
+                    },
+                    fontFamily: {
+                        "body": ["Inter"],
+                        "h1": ["Inter"],
+                        "label": ["Inter"],
+                        "caption": ["Inter"],
+                        "h3": ["Inter"],
+                        "h2": ["Inter"]
+                    },
+                    fontSize: {
+                        "body": ["15px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1": ["28px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+                        "label": ["12px", { "letterSpacing": "0.06em", "fontWeight": "500" }],
+                        "caption": ["13px", { "fontWeight": "400" }],
+                        "h3": ["16px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "h2": ["20px", { "lineHeight": "1.3", "fontWeight": "500" }]
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    
+    <!-- React & React Router DOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body class="bg-background text-on-surface font-body antialiased min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Layout Components ---
+        
+        const TopNav = () => (
+            <header className="bg-white dark:bg-gray-900 font-inter text-sm antialiased docked full-width top-0 sticky border-b border-gray-200 dark:border-gray-800 flat no shadows flex justify-between items-center w-full px-4 h-14 md:pl-[236px] z-40 transition-all duration-200">
+                <div className="flex items-center gap-2 md:hidden">
+                    <span className="text-lg font-black tracking-tighter text-gray-900 dark:text-white">LoanVati</span>
+                </div>
+                <div className="hidden md:block"></div>
+                <div className="flex items-center gap-4 text-indigo-600 dark:text-indigo-400">
+                    <span className="text-gray-600 dark:text-gray-400 font-medium hidden sm:inline-block">Free — 7 of 10 reports used</span>
+                    <button className="hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full p-1 transition-all duration-200 active:scale-[0.98]">
+                        <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">account_circle</span>
+                    </button>
+                </div>
+            </header>
+        );
+
+        const SideNav = () => {
+            const location = useLocation();
+            const isActive = (path) => location.pathname === path;
+            
+            return (
+                <nav className="bg-white dark:bg-gray-900 font-inter text-sm font-medium fixed left-0 top-0 h-full w-[220px] hidden md:flex flex-col border-r border-gray-200 dark:border-gray-800 flat no shadows z-50">
+                    <div className="text-xl font-black text-gray-900 dark:text-white px-4 py-6 block">
+                        LoanVati
+                        <div className="text-xs font-normal text-text-secondary mt-1 tracking-normal uppercase">Fintech for DSAs</div>
+                    </div>
+                    <div className="flex flex-col gap-1 py-4">
+                        <Link to="/dashboard" className={`${isActive('/dashboard') ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'} mx-2 px-3 py-2 flex items-center gap-3 transition-colors duration-150 rounded-md`}>
+                            <span className="material-symbols-outlined text-[20px]">dashboard</span>
+                            Dashboard
+                        </Link>
+                        <Link to="/screen" className={`${isActive('/screen') ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'} mx-2 px-3 py-2 flex items-center gap-3 transition-colors duration-150 rounded-md`}>
+                            <span className="material-symbols-outlined text-[20px]">person_search</span>
+                            Screen applicant
+                        </Link>
+                        <Link to="/billing" className={`${isActive('/billing') ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'} mx-2 px-3 py-2 flex items-center gap-3 transition-colors duration-150 rounded-md`}>
+                            <span className="material-symbols-outlined text-[20px]">payments</span>
+                            Billing
+                        </Link>
+                        <Link to="/settings" className={`${isActive('/settings') ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'} mx-2 px-3 py-2 flex items-center gap-3 transition-colors duration-150 rounded-md`}>
+                            <span className="material-symbols-outlined text-[20px]">settings</span>
+                            Settings
+                        </Link>
+                    </div>
+                </nav>
+            );
+        };
+
+        const BottomNav = () => {
+            const location = useLocation();
+            const isActive = (path) => location.pathname === path;
+
+            return (
+                <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-white dark:bg-gray-900 pb-safe border-t border-gray-200 dark:border-gray-800 h-14 md:hidden shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
+                    <Link to="/dashboard" className={`flex flex-col items-center justify-center ${isActive('/dashboard') ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'} active:bg-gray-50 dark:active:bg-gray-800 transition-transform active:scale-95 w-full h-full`}>
+                        <span className="material-symbols-outlined text-[24px] mb-0.5" style={{ fontVariationSettings: isActive('/dashboard') ? "'FILL' 1" : "'FILL' 0" }}>home</span>
+                        <span className="text-[10px] font-semibold tracking-tight font-inter">Home</span>
+                    </Link>
+                    <Link to="/screen" className={`flex flex-col items-center justify-center ${isActive('/screen') ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'} active:bg-gray-50 dark:active:bg-gray-800 transition-transform active:scale-95 w-full h-full`}>
+                        <span className="material-symbols-outlined text-[24px] mb-0.5" style={{ fontVariationSettings: isActive('/screen') ? "'FILL' 1" : "'FILL' 0" }}>person_search</span>
+                        <span className="text-[10px] font-semibold tracking-tight font-inter">Screen</span>
+                    </Link>
+                    <Link to="/settings" className={`flex flex-col items-center justify-center ${isActive('/settings') ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'} active:bg-gray-50 dark:active:bg-gray-800 transition-transform active:scale-95 w-full h-full`}>
+                        <span className="material-symbols-outlined text-[24px] mb-0.5" style={{ fontVariationSettings: isActive('/settings') ? "'FILL' 1" : "'FILL' 0" }}>settings</span>
+                        <span className="text-[10px] font-semibold tracking-tight font-inter">Settings</span>
+                    </Link>
+                </nav>
+            );
+        };
+
+        const Layout = ({ children, hideNav = false }) => (
+            <div className="flex flex-col min-h-screen pb-[56px] md:pb-0">
+                {!hideNav && <SideNav />}
+                <div className={`${!hideNav ? 'md:ml-[220px]' : ''} flex flex-col flex-1`}>
+                    {!hideNav && <TopNav />}
+                    {children}
+                </div>
+                {!hideNav && <BottomNav />}
+            </div>
+        );
+
+        // --- Pages ---
+
+        const LoginPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="bg-surface-container-low min-h-screen flex items-center justify-center p-4">
+                    <main className="w-full max-w-[400px]">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-black tracking-tighter text-primary-container mb-2">LoanVati</h1>
+                            <p className="font-body text-body text-text-secondary">Pre-screen before you submit</p>
+                        </div>
+                        <div className="bg-surface-container-lowest border border-border-default rounded-DEFAULT shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-6 md:p-8">
+                            <h2 className="font-h2 text-h2 text-text-primary mb-6">Sign in to your account</h2>
+                            <form className="space-y-form-gap" onSubmit={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
+                                <div>
+                                    <label className="block font-label text-label text-text-primary mb-1 uppercase tracking-wider" htmlFor="email">Email Address</label>
+                                    <input className="w-full h-[44px] px-3 font-body text-body text-text-primary bg-surface-container-lowest border border-border-emphasis rounded-DEFAULT focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container placeholder:text-text-secondary transition-colors" id="email" name="email" placeholder="agent@dsa.com" required type="email" defaultValue="demo@loanvati.com" />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <label className="block font-label text-label text-text-primary uppercase tracking-wider" htmlFor="password">Password</label>
+                                        <a className="font-caption text-caption text-primary hover:text-brand-hover" href="#">Forgot?</a>
+                                    </div>
+                                    <input className="w-full h-[44px] px-3 font-body text-body text-text-primary bg-surface-container-lowest border border-border-emphasis rounded-DEFAULT focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container placeholder:text-text-secondary transition-colors" id="password" name="password" placeholder="••••••••" required type="password" defaultValue="password" />
+                                </div>
+                                <div className="pt-2">
+                                    <button className="w-full h-[44px] bg-primary-container hover:bg-brand-hover text-on-primary font-h3 text-h3 rounded-DEFAULT transition-all duration-200 active:scale-[0.98] flex items-center justify-center" type="submit">
+                                        Sign In
+                                    </button>
+                                </div>
+                            </form>
+                            <div className="mt-6 pt-6 border-t border-border-default text-center">
+                                <p className="font-body text-body text-text-secondary">
+                                    No account? <a className="text-primary hover:text-brand-hover font-medium" href="#">Register here</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-8 text-center">
+                            <p className="font-caption text-caption text-text-secondary flex items-center justify-center gap-1">
+                                <span className="material-symbols-outlined text-[16px]">lock</span>
+                                Secure 256-bit SSL encryption
+                            </p>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const DashboardPage = () => {
+            const navigate = useNavigate();
+            return (
+                <Layout>
+                    <main className="flex-1 pb-24 md:pb-12 flex flex-col">
+                        <div className="sticky top-[56px] z-30 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-border-default py-4 px-margin-mobile md:px-margin-desktop flex justify-between items-center shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                            <h1 className="text-h1 font-h1 text-on-surface">Applicants</h1>
+                            <Link to="/screen/new" className="bg-primary text-on-primary h-[44px] px-4 rounded-DEFAULT flex items-center justify-center gap-2 text-body font-body font-medium transition-colors hover:bg-brand-hover active:scale-[0.98]">
+                                <span className="material-symbols-outlined text-[20px]">add</span>
+                                <span className="hidden sm:inline">Screen new applicant</span>
+                                <span className="sm:hidden">New</span>
+                            </Link>
+                        </div>
+                        <div className="px-margin-mobile md:px-margin-desktop py-6 flex flex-col md:flex-row gap-form-gap items-start md:items-center justify-between max-w-container-max mx-auto w-full">
+                            <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
+                                <button className="px-4 h-[32px] rounded-full border border-primary bg-primary-fixed text-on-primary-fixed text-caption font-caption font-medium flex items-center justify-center whitespace-nowrap">All Applicants</button>
+                                <button className="px-4 h-[32px] rounded-full border border-border-default bg-surface-container-lowest text-text-secondary hover:bg-surface-container transition-colors text-caption font-caption font-medium flex items-center justify-center whitespace-nowrap">Requires Review</button>
+                                <button className="px-4 h-[32px] rounded-full border border-border-default bg-surface-container-lowest text-text-secondary hover:bg-surface-container transition-colors text-caption font-caption font-medium flex items-center justify-center whitespace-nowrap">Approved</button>
+                            </div>
+                            <div className="relative w-full md:w-[300px]">
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[20px]">search</span>
+                                <input className="w-full h-[44px] pl-10 pr-4 rounded-DEFAULT border border-border-default bg-surface-container-lowest text-body font-body text-on-surface placeholder:text-text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search by name or ID..." type="text" />
+                            </div>
+                        </div>
+                        <div className="px-margin-mobile md:px-margin-desktop flex flex-col gap-4 max-w-container-max mx-auto w-full">
+                            {/* Card 1 */}
+                            <div onClick={() => navigate('/applicant/detail')} className="cursor-pointer border border-border-default rounded-lg bg-surface-container-lowest p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-shadow flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-risk-low-bg text-risk-low-text border border-risk-low-border px-2.5 py-0.5 rounded-full text-caption font-caption font-medium flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                            Low Risk
+                                        </span>
+                                    </div>
+                                    <span className="text-caption font-caption text-text-secondary bg-surface-container px-2 py-1 rounded-DEFAULT">Completed</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-h2 font-h2 text-on-surface mb-0.5">Ravi Sharma</h3>
+                                    <p className="text-caption font-caption text-text-secondary font-mono">ID: LV-2023-8841</p>
+                                </div>
+                            </div>
+                            {/* Card 2 */}
+                            <div onClick={() => navigate('/applicant/log')} className="cursor-pointer border border-border-default rounded-lg bg-surface-container-lowest p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-shadow flex flex-col gap-4 border-l-4 border-l-risk-uncertain-border">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-risk-uncertain-bg text-risk-uncertain-text border border-risk-uncertain-border px-2.5 py-0.5 rounded-full text-caption font-caption font-medium flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>help</span>
+                                            Uncertain
+                                        </span>
+                                    </div>
+                                    <span className="text-caption font-caption text-primary bg-primary-fixed px-2 py-1 rounded-DEFAULT font-medium">Requires Review</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-h2 font-h2 text-on-surface mb-0.5">Priya Desai</h3>
+                                    <p className="text-caption font-caption text-text-secondary font-mono">ID: LV-2023-8842</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </Layout>
+            );
+        };
+
+        const NewScreeningPage = () => {
+            const navigate = useNavigate();
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleScore = (e) => {
+                e.preventDefault();
+                setIsLoading(true);
+                setTimeout(() => {
+                    setIsLoading(false);
+                    navigate('/applicant/detail');
+                }, 1500);
+            };
+
+            return (
+                <div className="bg-background text-on-surface font-body antialiased min-h-screen flex flex-col pb-[80px] md:pb-0">
+                    <header className="sticky top-0 z-40 bg-surface-container-lowest border-b border-border-default px-margin-mobile h-14 flex items-center gap-4">
+                        <Link to="/screen" className="text-on-surface-variant hover:text-on-surface transition-colors">
+                            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                        </Link>
+                        <h1 className="font-h3 text-h3 text-on-surface">New Applicant Screening</h1>
+                    </header>
+                    <main className="flex-1 w-full max-w-[800px] mx-auto p-margin-mobile md:p-margin-desktop space-y-8">
+                        <form onSubmit={handleScore}>
+                            <section className="bg-surface-container-lowest border border-border-default rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                                <div className="px-gutter py-4 border-b border-border-default bg-surface-container-low/30">
+                                    <h2 className="font-h2 text-h2 text-on-surface flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+                                        Applicant Details
+                                    </h2>
+                                </div>
+                                <div className="p-gutter grid grid-cols-1 md:grid-cols-2 gap-form-gap">
+                                    <div className="space-y-1.5">
+                                        <label className="font-label text-label text-on-surface-variant uppercase">Total Annual Income</label>
+                                        <input className="w-full h-[44px] px-3 rounded border border-border-default bg-surface-container-lowest" type="number" placeholder="0.00" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="font-label text-label text-on-surface-variant uppercase">Bureau Score</label>
+                                        <input className="w-full h-[44px] px-3 rounded border border-border-default bg-surface-container-lowest" type="number" placeholder="e.g. 750" />
+                                    </div>
+                                </div>
+                            </section>
+                            
+                            <div className="fixed bottom-0 left-0 w-full z-30 bg-surface-container-lowest border-t border-border-default p-margin-mobile shadow-[0_-4px_12px_rgba(0,0,0,0.03)] md:relative md:bg-transparent md:border-none md:shadow-none md:p-0 md:max-w-[800px] md:mx-auto md:mt-6 md:mb-12">
+                                <button type="submit" className="w-full h-[44px] bg-primary hover:bg-brand-hover text-on-primary font-body font-medium rounded transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm">
+                                    Get risk score
+                                    <span className="material-symbols-outlined text-[18px]">analytics</span>
+                                </button>
+                            </div>
+                        </form>
+                    </main>
+                    
+                    {isLoading && (
+                        <div className="fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center p-margin-mobile">
+                            <div className="bg-surface-container-lowest w-full max-w-[400px] rounded-xl shadow-xl overflow-hidden p-6 text-center">
+                                <span className="material-symbols-outlined animate-spin text-[40px] text-primary mb-4">progress_activity</span>
+                                <h3 className="font-h3 text-h3">Processing Application</h3>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const ApplicantDetailPage = () => (
+            <Layout>
+                <main className="pt-6 pb-24 md:pb-12 px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto w-full flex-1">
+                    <header className="mb-8 flex items-center justify-between">
+                        <div>
+                            <Link to="/dashboard" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors font-label text-label mb-2">
+                                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                                Back to Screening
+                            </Link>
+                            <h1 className="font-h1 text-h1 text-text-primary">Applicant Report: John Doe</h1>
+                        </div>
+                    </header>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+                        <div className="lg:col-span-5 flex flex-col gap-6">
+                            <div className="bg-surface-container-lowest border border-border-default rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+                                <div className="flex justify-between items-start mb-6">
+                                    <h2 className="font-h2 text-h2 text-text-primary">Lending Risk Score</h2>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-risk-high-bg text-risk-high-text border border-risk-high-border font-label text-label gap-1">
+                                        <span className="material-symbols-outlined text-[14px]">warning</span>
+                                        High Risk
+                                    </span>
+                                </div>
+                                <div className="flex items-baseline gap-2 mb-2">
+                                    <span className="text-[48px] leading-none font-bold text-text-primary">0.72</span>
+                                    <span className="font-caption text-caption text-text-secondary">/ 1.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="lg:col-span-7 flex flex-col gap-6">
+                            <div className="bg-risk-high-bg border border-risk-high-border rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div>
+                                    <p className="font-label text-label text-risk-high-text mb-1 uppercase tracking-wider">AI System Recommendation</p>
+                                    <h2 className="text-[32px] font-bold text-risk-high-text leading-tight">REJECT</h2>
+                                </div>
+                                <div className="flex flex-col gap-3 w-full md:w-auto">
+                                    <button className="bg-risk-high-text text-white font-label text-label h-[44px] px-8 rounded hover:opacity-90 transition-opacity">
+                                        Confirm Rejection
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </Layout>
+        );
+
+        const LogOutcomePage = () => {
+            const navigate = useNavigate();
+            return (
+                <Layout>
+                    <main className="p-margin-mobile md:p-margin-desktop max-w-container-max mx-auto pb-24 md:pb-12 flex flex-col gap-6 w-full flex-1">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="font-h1 text-h1 text-text-primary mb-1">Ravi Kumar</h1>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 rounded border border-border-default bg-surface-container-highest text-text-secondary font-label text-label uppercase">Submitted to Lender</span>
+                                </div>
+                            </div>
+                        </div>
+                        <section className="bg-surface-container-lowest border border-border-default rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+                            <h2 className="font-h2 text-h2 text-text-primary mb-6">Log lender outcome</h2>
+                            <form className="flex flex-col gap-form-gap" onSubmit={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
+                                <div className="flex flex-col gap-3">
+                                    <label className="font-label text-label text-text-primary uppercase">Decision</label>
+                                    <div className="flex flex-col gap-3 md:flex-row md:gap-6">
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <input className="w-5 h-5 text-primary" name="outcome" type="radio" value="approved" />
+                                            <span className="font-body text-body text-text-primary group-hover:text-primary">Approved</span>
+                                        </label>
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <input className="w-5 h-5 text-primary" name="outcome" type="radio" value="rejected" />
+                                            <span className="font-body text-body text-text-primary group-hover:text-primary">Rejected</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="pt-2">
+                                    <button className="h-[44px] w-full md:w-auto px-6 bg-primary text-on-primary font-label text-label rounded-lg hover:bg-brand-hover active:scale-[0.98]" type="submit">
+                                        Save outcome
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+                    </main>
+                </Layout>
+            );
+        };
+
+        const BillingPage = () => (
+            <Layout>
+                <main className="flex-1 p-margin-mobile md:p-margin-desktop pb-[80px] md:pb-margin-desktop max-w-container-max mx-auto w-full">
+                    <div className="mb-8">
+                        <h1 className="font-h1 text-h1 text-text-primary mb-2">Billing & Plans</h1>
+                        <p className="font-body text-body text-on-surface-variant">Manage your subscription, team seats, and view billing history.</p>
+                    </div>
+                    <section className="bg-surface-container-low border border-border-default rounded-xl p-6 mb-10">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                                <span className="font-label text-label text-primary uppercase tracking-wider mb-1 block">Current Plan</span>
+                                <h2 className="font-h2 text-h2 text-text-primary mb-2">Growth Plan</h2>
+                            </div>
+                            <div className="flex flex-col gap-3 min-w-[200px]">
+                                <button className="h-[44px] w-full border border-border-default bg-surface-container-lowest text-text-primary font-medium rounded transition-colors hover:bg-surface-container active:scale-[0.98]">
+                                    Manage Subscription
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </Layout>
+        );
+
+        const SettingsPage = () => (
+            <Layout>
+                <main className="w-full max-w-container-max mx-auto p-margin-mobile md:p-margin-desktop space-y-8 flex-1">
+                    <header>
+                        <h1 className="font-h1 text-h1 text-text-primary">Settings</h1>
+                        <p className="font-body text-body text-text-secondary mt-1">Manage your account preferences and security.</p>
+                    </header>
+                    <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
+                        <section className="bg-surface-container-lowest border border-border-default rounded shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-6">
+                            <h2 className="font-h2 text-h2 text-text-primary mb-form-gap">Profile</h2>
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="font-label text-label text-text-secondary" htmlFor="fullName">Full name</label>
+                                    <input className="h-[44px] w-full max-w-md border border-border-default rounded px-3 font-body text-body text-text-primary focus:border-primary outline-none transition-all" id="fullName" type="text" defaultValue="John Doe" />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="font-label text-label text-text-secondary" htmlFor="email">Email</label>
+                                    <input className="h-[44px] w-full max-w-md border border-border-default bg-surface-container-high rounded px-3 font-body text-body text-on-surface-variant cursor-not-allowed outline-none" id="email" readOnly type="email" defaultValue="john.doe@loanvati.com" />
+                                </div>
+                            </div>
+                        </section>
+                        <div className="flex items-center justify-end">
+                            <button className="h-[44px] w-full md:w-auto bg-primary hover:bg-brand-hover text-on-primary font-label text-label rounded px-8 shadow-sm" type="submit">
+                                Save changes
+                            </button>
+                        </div>
+                    </form>
+                </main>
+            </Layout>
+        );
+
+        // --- App Router ---
+        
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/" element={<LoginPage />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/screen" element={<DashboardPage />} />
+                        <Route path="/screen/new" element={<NewScreeningPage />} />
+                        <Route path="/applicant/detail" element={<ApplicantDetailPage />} />
+                        <Route path="/applicant/log" element={<LogOutcomePage />} />
+                        <Route path="/billing" element={<BillingPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

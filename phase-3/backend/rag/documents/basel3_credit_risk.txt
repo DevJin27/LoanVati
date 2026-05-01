@@ -1,0 +1,32 @@
+Document ID: BASEL3-CR-IRB
+Title: Basel III Credit Risk Framework and IRB Concepts
+
+Section 1.1 - Credit Risk Objective
+Basel III describes credit risk as the possibility that a borrower or counterparty fails to meet obligations in accordance with agreed terms. The framework aims to ensure that regulated institutions maintain enough capital to absorb unexpected losses arising from that risk. Although Basel capital rules are written for prudential supervision rather than retail loan origination directly, their core concepts are highly relevant for internal risk measurement. These concepts include probability of default, loss given default, exposure at default, expected loss, and the distinction between regulatory capital and day-to-day credit decisioning.
+
+Section 2.1 - Probability of Default
+Probability of default, or PD, is the estimated likelihood that an obligor will default over a specified horizon, usually one year. In practice, PD models draw on repayment history, delinquency patterns, leverage, income stability, external credit bureau information, and other predictive factors. Good PD estimation requires sufficient historical depth, conservative calibration, and periodic back-testing. A lender should understand that PD is not a certainty statement. It is a risk estimate that supports pricing, approval thresholds, portfolio monitoring, and capital planning.
+
+Section 2.2 - Loss Given Default
+Loss given default, or LGD, is the proportion of exposure that would be lost if default occurs. LGD depends on recovery prospects, collateral type, seniority, enforcement efficiency, legal expenses, cure rates, and macroeconomic conditions. Unsecured retail lending generally exhibits higher LGD than secured lending because recoveries are more limited and more variable. Even when default probability is the main driver of underwriting, institutions should remain aware that two borrowers with similar PDs may produce different expected losses if the recovery environment differs materially.
+
+Section 2.3 - Exposure at Default
+Exposure at default, or EAD, measures the amount expected to be outstanding when default happens. For term loans, EAD is influenced by scheduled amortization and delinquent interest. For revolving credit products, undrawn commitments and borrower behavior near stress can increase EAD materially. Sound risk management therefore looks beyond current outstanding balance and considers likely utilization at the point of failure.
+
+Section 3.1 - Expected Loss and Unexpected Loss
+Expected loss is broadly the product of PD, LGD, and EAD. It reflects the average loss the institution anticipates over time and is often addressed through pricing, provisioning, or business planning. Unexpected loss represents adverse deviation around that expectation and is one reason capital buffers are necessary. A retail lender using credit scoring for underwriting does not need to replicate Basel capital formulas exactly, but it benefits from understanding the relationship between borrower default likelihood, recovery potential, and total portfolio volatility.
+
+Section 4.1 - Standardized and IRB Approaches
+Basel III allows different approaches to calculate regulatory capital. Under the standardized approach, risk weights are assigned using supervisory rules and external criteria. Under the internal ratings-based, or IRB, approach, banks use validated internal estimates of PD and, in more advanced settings, LGD and EAD as well. IRB requires strong governance, data lineage, model validation, and supervisory approval. The practical lesson for model builders is that internally generated scores must be disciplined, explainable, and monitored if they are to support material credit decisions.
+
+Section 4.2 - Model Governance Expectations
+An institution relying on internal risk grades or probability models should define the population, performance horizon, segmentation, overrides policy, and validation standards. Governance should cover training data quality, handling of missing values, feature stability, discrimination power, calibration drift, and periodic review of adverse outcomes. Overrides to model recommendations should be documented so management can understand whether human review is improving outcomes or weakening discipline.
+
+Section 5.1 - Use Test and Decision Integration
+Basel practice emphasizes the use test: internal ratings should not exist only for regulatory reporting; they should influence real business processes. That means a PD estimate or risk classification should inform underwriting, pricing, limits, collections strategy, and portfolio monitoring. When a borrower falls into a borderline zone, policy should define whether the institution declines, prices for risk, or escalates for manual review. The use test also implies that explanations need to be understandable to frontline credit officers.
+
+Section 6.1 - Conservatism and Cyclicality
+Credit risk is cyclical. Models trained on benign periods can understate stress behavior, while models trained only on downturn data can become excessively restrictive. Basel guidance therefore encourages conservative estimation, especially where data are thin or borrower conduct changes quickly. Institutions should be careful when relying on recent repayment stability alone if macro conditions, employment conditions, or funding costs are deteriorating.
+
+Section 7.1 - Retail Portfolio Application
+For retail lending, Basel concepts translate into practical controls: identify strong predictors of default, monitor delinquency migration, adjust for exposure growth, and review whether the portfolio mix has shifted toward thinner-file or higher-risk segments. A credit score can be valuable when it is paired with clear policy rules, exceptions handling, and documentation of why a given risk class leads to approval, rejection, or manual review.

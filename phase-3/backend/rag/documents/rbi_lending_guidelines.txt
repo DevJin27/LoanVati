@@ -1,0 +1,32 @@
+Document ID: RBI-RESPONSIBLE-LENDING
+Title: RBI Themes on Responsible Lending, KYC, and Credit Information Use
+
+Section 1.1 - Responsible Lending Foundation
+Responsible lending requires that a financial institution assess affordability, disclose material terms, verify borrower identity, and avoid extending credit in a way that predictably causes distress. The idea is broader than compliance with documentation alone. A lender should understand the source of repayment, the purpose of the credit, the borrower's overall debt burden, and whether the proposed product matches the customer's profile. This is especially important for digitally originated loans and high-volume retail programs where automation can otherwise turn underwriting into a mechanical exercise.
+
+Section 2.1 - Know Your Customer Requirements
+KYC controls require the lender to establish and verify the customer's identity using approved documents, validate address and contact details where required, and understand the nature of the customer relationship. Effective KYC is not merely an onboarding checklist. It supports fraud control, duplicate detection, sanctions compliance, and traceability of the credit relationship. A weak KYC process can undermine credit quality because false identities or misrepresented profiles distort both the underwriting model and subsequent recovery efforts.
+
+Section 2.2 - Customer Due Diligence in Credit Decisions
+Customer due diligence should be proportionate to risk. For salaried borrowers, this may include employer verification, salary credit patterns, and consistency between declared occupation and account behavior. For self-employed applicants, turnover, seasonality, tax records, or banking patterns may be reviewed. When the institution relies on third-party data sources, it remains responsible for ensuring that those data are appropriate and current for the decision being made.
+
+Section 3.1 - Credit Bureau Usage
+Credit bureau reports are central to responsible lending because they help the lender understand current indebtedness, prior repayment conduct, and the potential for overextension. However, bureau usage must remain disciplined. Data should be obtained lawfully, matched accurately, and interpreted contextually. A short isolated delay is different from repeated severe delinquency, and a long stable credit history may offset some concerns that a thin-file applicant cannot address. Bureau inquiries, active tradelines, utilization, and write-off history all provide signals, but the institution should avoid simplistic one-variable decisions.
+
+Section 3.2 - Fair Treatment and Explainability
+When credit is denied or escalated, the institution should be able to articulate the broad reasons in a fair and respectful manner. Responsible lending practice supports the idea that the customer should not be left with a completely opaque outcome. The institution need not disclose proprietary scoring logic in detail, but it should know internally whether the main drivers were leverage, delinquency history, insufficient income coverage, policy breach, or documentation gaps. Explainability also supports internal review, complaint handling, and conduct oversight.
+
+Section 4.1 - Affordability Assessment
+Affordability requires more than checking whether the applicant can technically fit a monthly installment into current income. It should consider debt obligations already outstanding, variability of earnings, family size, living expenses where relevant, and the effect of interest rate or income shocks. A borrower near the limit of affordability may warrant either a smaller sanctioned amount, additional review, or decline. This principle aligns naturally with risk scores that flag borderline cases rather than forcing automatic approval.
+
+Section 4.2 - Product Suitability and Risk Controls
+Responsible lenders should match product structure to borrower profile. Short-tenor high-cost products may be unsuitable for borrowers with unstable income. Revolving credit may create greater risk if the borrower already shows utilization stress or prior payment irregularity. Suitability considerations can be embedded in policy rules or decision-support reports so that a strong score in one dimension does not override clear concerns in another.
+
+Section 5.1 - Data Governance and Consent
+Institutions should maintain lawful data collection, proper customer consent where applicable, secure storage, and limited access to sensitive information. Automated scoring systems should preserve data lineage so that the lender knows which source contributed which field. If a bureau field, bank statement attribute, or derived affordability ratio materially affected the decision, that should be auditable for internal governance.
+
+Section 6.1 - Manual Review and Escalation
+Responsible lending frameworks typically recognize that some cases are not well served by purely automated decisions. Borderline affordability, conflicting data, thin files with high requested exposure, or inconsistent bureau patterns may require manual review by a credit officer. Escalation is not a model failure. It is a governance control that prevents overconfidence in uncertain cases and allows human judgment to consider contextual evidence.
+
+Section 7.1 - Practical Decision Support Implications
+For an AI-assisted lending system, responsible practice means combining predictive scoring with policy checks, regulatory context, and transparent reporting. The system should identify the main risk drivers, surface relevant regulatory guidance, and clearly distinguish between low-risk approvals, high-risk rejections, and uncertain cases that should be manually reviewed. This preserves both efficiency and control while keeping the final lending responsibility with the institution rather than the model alone.
