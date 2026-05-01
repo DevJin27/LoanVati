@@ -40,10 +40,6 @@
       ]
     }
   ],
-  "buildCache": {
-    "npm": true,
-    "yarnCache": false
-  },
   "redirects": [],
   "version": 3
 }
