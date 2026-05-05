@@ -23,6 +23,11 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
+class WaitlistRequest(BaseModel):
+    full_name: str | None = Field(default=None, max_length=255)
+    email: str = Field(..., min_length=5, max_length=255)
+
+
 class RegisterRequest(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=255)
     email: str = Field(..., min_length=5, max_length=255)
@@ -140,3 +145,20 @@ def me(current_user: User = Depends(get_current_user)) -> UserResponse:
         full_name=current_user.full_name,
         role=current_user.role,
     )
+
+
+@router.post("/waitlist", status_code=status.HTTP_201_CREATED)
+def join_waitlist(payload: WaitlistRequest, db: Session = Depends(get_db)):
+    from src.db.models import WaitlistEntry
+    email = payload.email.strip().lower()
+    existing = db.scalar(select(WaitlistEntry).where(WaitlistEntry.email == email))
+    if existing:
+        return {"status": "already_waitlisted"}
+        
+    entry = WaitlistEntry(
+        email=email, 
+        full_name=payload.full_name.strip() if payload.full_name else None
+    )
+    db.add(entry)
+    db.commit()
+    return {"status": "success"}

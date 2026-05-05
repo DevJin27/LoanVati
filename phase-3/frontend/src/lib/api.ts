@@ -84,6 +84,12 @@ export const api = {
     });
     setToken(result.access_token);
   },
+  async waitlist(payload: { email: string; full_name?: string }): Promise<void> {
+    await request("/auth/waitlist", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
   async login(payload: { email: string; password: string }): Promise<void> {
     const result = await request<{ access_token: string }>("/auth/login", {
       method: "POST",

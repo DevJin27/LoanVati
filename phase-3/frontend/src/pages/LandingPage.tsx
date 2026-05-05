@@ -7,7 +7,7 @@ import { DemoSlideshow } from "../components/DemoSlideshow";
 import { InputField } from "../components/FormField";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { ApiError } from "../lib/api";
+import { api, ApiError } from "../lib/api";
 
 
 const features = [
@@ -44,7 +44,6 @@ export function LandingPage(): JSX.Element {
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { notify } = useToast();
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   async function submitWaitlist(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -52,22 +51,14 @@ export function LandingPage(): JSX.Element {
     const data = new FormData(event.currentTarget);
     const email = String(data.get("waitlist_email"));
     const full_name = String(data.get("waitlist_name") || "");
-    // Generate a secure random password — user gets immediate access via the
-    // token; they can set a real password from Settings later.
-    const tempPassword = "LV_" + crypto.randomUUID().replace(/-/g, "").slice(0, 20);
 
     setLoading(true);
     try {
-      await register(full_name || email, email, tempPassword);
-      notify("You're in! Redirecting to your dashboard...", "success");
-      setWaitlistOpen(false);
-      navigate("/dashboard", { replace: true });
+      await api.waitlist({ email, full_name: full_name || undefined });
+      notify("You're on the waitlist! We'll be in touch soon.", "success");
+      event.currentTarget.reset();
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
-        notify("Email already registered. Please log in instead.", "error");
-      } else {
-        notify(error instanceof Error ? error.message : "Unable to create your account.", "error");
-      }
+      notify(error instanceof Error ? error.message : "Unable to join the waitlist.", "error");
     } finally {
       setLoading(false);
     }
