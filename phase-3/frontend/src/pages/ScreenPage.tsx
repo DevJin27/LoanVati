@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "../components/Button";
-import { InputField, SelectField } from "../components/FormField";
+import { CurrencyField, InputField, SelectField } from "../components/FormField";
 import { ProgressSteps } from "../components/ProgressSteps";
 import { useToast } from "../contexts/ToastContext";
 import { api } from "../lib/api";
@@ -83,9 +83,9 @@ export function ScreenPage(): JSX.Element {
             <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-gray-400">Applicant details</h2>
             <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
               <InputField label="Full name" name="full_name" placeholder="Applicant name" />
-              <InputField label="Annual income (₹)" name="income" type="number" min="1" required />
-              <InputField label="Credit amount requested (₹)" name="credit_amount" type="number" min="1" required />
-              <InputField label="Loan annuity / EMI (₹)" name="annuity" type="number" min="1" required />
+              <CurrencyField label="Annual income" name="income" min={1} required />
+              <CurrencyField label="Credit amount requested" name="credit_amount" min={1} required />
+              <CurrencyField label="Loan annuity / EMI" name="annuity" min={1} required />
               <InputField label="Employment years" name="employment_years" type="number" min="0" step="0.1" required />
             </div>
           </div>

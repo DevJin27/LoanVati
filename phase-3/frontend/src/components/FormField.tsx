@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import { useState } from "react";
 
 interface FieldShellProps {
   label: string;
@@ -58,3 +59,78 @@ export function SelectField({ label, error, options, className = "", ...props }:
     </FieldShell>
   );
 }
+
+interface CurrencyFieldProps {
+  label: string;
+  name: string;
+  required?: boolean;
+  min?: number;
+  error?: string;
+  defaultValue?: number;
+}
+
+/**
+ * CurrencyField
+ *
+ * Displays a ₹-prefixed text input with Indian-locale comma formatting
+ * (e.g. ₹1,80,000) as the user types. A hidden `<input type="number">`
+ * with the same `name` carries the raw numeric value so FormData picks
+ * it up correctly — no parsing needed in handleSubmit.
+ */
+export function CurrencyField({
+  label,
+  name,
+  required,
+  min,
+  error,
+  defaultValue,
+}: CurrencyFieldProps): JSX.Element {
+  const [raw, setRaw] = useState<number | "">(defaultValue ?? "");
+
+  const formatted =
+    raw === "" || raw === 0
+      ? ""
+      : new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(raw);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    // Strip everything that isn't a digit
+    const digits = e.target.value.replace(/[^\d]/g, "");
+    setRaw(digits === "" ? "" : Number(digits));
+  }
+
+  const inputClass = `h-11 w-full rounded-lg border pl-8 pr-3.5 text-[15px] outline-none transition focus:border-brand focus:ring-4 focus:ring-indigo-100 ${
+    error ? "border-red-400" : "border-gray-200"
+  }`;
+
+  return (
+    <FieldShell label={label} error={error}>
+      <div className="relative">
+        {/* ₹ prefix */}
+        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[15px] text-gray-400">
+          ₹
+        </span>
+        {/* Visible formatted input */}
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          value={formatted}
+          onChange={handleChange}
+          placeholder="0"
+          required={required}
+          className={inputClass}
+          aria-label={label}
+        />
+        {/* Hidden input that carries the raw number for FormData */}
+        <input
+          type="hidden"
+          name={name}
+          value={raw === "" ? "" : raw}
+          readOnly
+          data-min={min}
+        />
+      </div>
+    </FieldShell>
+  );
+}
+
