@@ -18,6 +18,11 @@ def engineer_main_features(app_df: pd.DataFrame) -> pd.DataFrame:
     engineered_df["DAYS_EMPLOYED_PERC"] = _safe_ratio(
         engineered_df["DAYS_EMPLOYED"], engineered_df["DAYS_BIRTH"]
     )
+    # TODO(retrain): DELETE these two lines before next training run.
+    # INCOME_PER_PERSON causes high-income applicants to score as high-risk because
+    # the model learned large raw values correlate with risk in the training set.
+    # It has been excluded from inference already (product_routes.py) — remove it
+    # from training too so the model never sees it again.
     engineered_df["INCOME_PER_PERSON"] = _safe_ratio(
         engineered_df["AMT_INCOME_TOTAL"], engineered_df["CNT_FAM_MEMBERS"]
     )

@@ -100,8 +100,10 @@ class CreditRiskPredictor:
         dti = credit / income   # debt-to-income
         pti = annuity / income  # payment-to-income
 
-        # Extremely low burden — approve without model to avoid false positives
-        if dti < 0.05 and pti < 0.10:
+        # Safe zone: low debt burden — approve without model to avoid false positives
+        # threshold widened from dti<0.05 to dti<=0.08 to catch high-income / small-loan cases
+        # (e.g. ₹1.8Cr income, ₹9L credit → dti=0.05 was previously excluded by strict <)
+        if dti <= 0.08 and pti <= 0.15:
             return "APPROVE_SAFE"
 
         # Structurally unviable — model extrapolation unreliable beyond these levels
@@ -243,9 +245,32 @@ class CreditRiskPredictor:
         model_pipeline = self.rf_pipeline if self.rf_pipeline is not None else self.lr_pipeline
         probability = float(model_pipeline.predict_proba(aligned_features)[:, 1][0])
 
+        # Post-model safety override.
+        # If the model fires High but the financial ratios are clearly safe,
+        # the model is extrapolating badly (likely due to INCOME_PER_PERSON or raw income magnitude).
+        # Hard-cap at Low when both ratios are unambiguously safe.
+        income = float(feature_dict.get("AMT_INCOME_TOTAL") or 0)
+        credit = float(feature_dict.get("AMT_CREDIT") or 0)
+        annuity = float(feature_dict.get("AMT_ANNUITY") or 0)
+        if income > 0:
+            dti_post = credit / income
+            pti_post = annuity / income
+            if dti_post <= 0.05 and pti_post <= 0.05 and probability > self.threshold:
+                logger.warning(
+                    "Post-model override fired: model=%.3f but dti=%.3f pti=%.3f — forcing Low",
+                    probability, dti_post, pti_post,
+                )
+                return {
+                    "risk_score": round(min(probability, 0.20), 4),
+                    "risk_class": "Low",
+                    "confidence": round(abs(0.10 - 0.5) * 2, 4),
+                    "top_features": [],
+                    "model_version": f"{self.model_version}_override",
+                }
+
         # Threshold-relative bucketing.
         # self.threshold is the FPR-constrained optimal from training (currently 0.43).
-        # Uncertain band = ±25% of threshold so the boundary adapts if threshold changes.
+        # Uncertain band = 70% of threshold so the boundary adapts if threshold changes.
         uncertain_low = self.threshold * 0.70
         if probability >= self.threshold:
             risk_class = "High"

@@ -66,11 +66,20 @@ function confidenceLabel(confidence: number): "High" | "Medium" | "Low" {
 function featureToPlain(f: FeatureImpact): { label: string; detail: string } {
   const PLAIN: Record<string, { label: string; detail: (dir: string) => string }> = {
     "Annual Income": {
-      label: "Income level",
+      label: "Repayment burden",
       detail: (d) =>
         d === "increases risk"
-          ? "Income is lower relative to the credit burden"
-          : "Income is strong relative to the credit burden",
+          ? "The loan burden is high relative to income — higher repayments reduce ability to service debt"
+          : "Income comfortably covers the repayment — low burden relative to earnings",
+    },
+    "Income Per Person": {
+      // INCOME_PER_PERSON is a training artefact that should be removed on retrain.
+      // Show a safe label in the meantime rather than exposing the raw feature name.
+      label: "Household income adequacy",
+      detail: (d) =>
+        d === "increases risk"
+          ? "Income per household member is lower, reducing financial buffer"
+          : "Household income per member is sufficient to absorb repayments",
     },
     "Credit Amount": {
       label: "Loan size",

@@ -61,8 +61,12 @@ def _screening_to_features(payload: ScreeningRequest) -> dict:
         # Ratio features — must mirror feature_engineering.engineer_main_features() exactly.
         # These were present during training but were never computed at inference, causing
         # the model to misinterpret raw income/credit values (root cause of income anomaly).
+        #
+        # INCOME_PER_PERSON is intentionally EXCLUDED here.
+        # The model was trained on it but it causes high-income applicants to be incorrectly
+        # penalised (larger raw value = model treats as risk). Excluded until the model is
+        # retrained without it. It will be NaN-imputed to the training median, which is neutral.
         "DAYS_EMPLOYED_PERC": (days_employed / days_birth) if days_birth != 0 else float("nan"),
-        "INCOME_PER_PERSON": (income / family_size) if family_size > 0 else float("nan"),
         "ANNUITY_INCOME_RATIO": (annuity / income) if income > 0 else float("nan"),
         "CREDIT_INCOME_RATIO": (credit / income) if income > 0 else float("nan"),
     }
