@@ -149,7 +149,10 @@ export function LandingPage(): JSX.Element {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => setWaitlistOpen(true)} className="w-full sm:w-auto">
+              <Button
+                onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })}
+                className="w-full sm:w-auto"
+              >
                 Join the Waitlist
               </Button>
               <Button
@@ -333,7 +336,7 @@ export function LandingPage(): JSX.Element {
       </section>
 
       {/* Waitlist Section */}
-      <section className="border-t border-gray-200/50 bg-gradient-to-br from-indigo-50 via-white to-indigo-50 py-16 md:py-24">
+      <section id="waitlist" className="border-t border-gray-200/50 bg-gradient-to-br from-indigo-50 via-white to-indigo-50 py-16 md:py-24">
         <div className="mx-auto max-w-2xl px-4 md:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-black tracking-tight text-gray-950 md:text-4xl">
