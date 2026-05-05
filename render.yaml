@@ -41,7 +41,7 @@ services:
       - key: MODEL_VERSION
         value: catboost_v1.2
       - key: CORS_ORIGINS
-        value: https://loanvati-frontend.vercel.app,https://loanvati.com
+        value: https://loanvati.vercel.app,https://loanvati.com
       - key: ENVIRONMENT
         value: production
     healthCheckPath: /api/v1/auth/me
