@@ -5,9 +5,7 @@ from __future__ import annotations
 import json
 import os
 import time
-import importlib
 
-import streamlit as st
 from langchain_groq import ChatGroq
 
 from src.agent.prompts import (
@@ -35,17 +33,8 @@ MAX_RETRIES = 3
 
 
 def _get_groq_api_key() -> str | None:
-    """Resolve GROQ API key from environment or Streamlit secrets."""
-    env_key = os.getenv("GROQ_API_KEY")
-    if env_key:
-        return env_key
-
-    try:
-        st = importlib.import_module("streamlit")
-        secret_value = st.secrets.get("GROQ_API_KEY")
-        return str(secret_value) if secret_value else None
-    except Exception:
-        return None
+    """Resolve GROQ API key from environment."""
+    return os.getenv("GROQ_API_KEY") or None
 
 
 def get_llm() -> ChatGroq:
@@ -244,15 +233,19 @@ def risk_node(state: AgentState) -> dict:
         return update
 
 
-@st.cache_resource(show_spinner="Loading regulatory index...")
+_RETRIEVER_SINGLETON: "FAISSRetriever | None" = None
+
+
 def _get_retriever() -> "FAISSRetriever":
-    """Load the FAISS retriever once and cache it for the lifetime of the
-    Streamlit session.  Re-creating it on every agent run causes PyTorch to
-    reload the SentenceTransformer model each time, which segfaults on
-    Apple Silicon when the process tries to clean up the multiprocessing
-    semaphores that sentence-transformers internally allocates.
+    """Load the FAISS retriever once per process lifetime (module-level singleton).
+    Re-creating it on every agent run causes PyTorch to reload the
+    SentenceTransformer model each time, which is expensive and can segfault
+    on Apple Silicon. The singleton is initialised lazily on first call.
     """
-    return FAISSRetriever()
+    global _RETRIEVER_SINGLETON
+    if _RETRIEVER_SINGLETON is None:
+        _RETRIEVER_SINGLETON = FAISSRetriever()
+    return _RETRIEVER_SINGLETON
 
 
 def rag_node(state: AgentState) -> dict:
