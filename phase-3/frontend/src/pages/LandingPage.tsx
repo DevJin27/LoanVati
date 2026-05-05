@@ -3,11 +3,12 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "../components/Button";
+import { DemoSlideshow } from "../components/DemoSlideshow";
 import { InputField } from "../components/FormField";
-import { Modal } from "../components/Modal";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { ApiError } from "../lib/api";
+
 
 const features = [
   {
@@ -41,41 +42,10 @@ const stats = [
 export function LandingPage(): JSX.Element {
   const [demoOpen, setDemoOpen] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const [demoEmail, setDemoEmail] = useState("");
-  const [demoCaptured, setDemoCaptured] = useState(false);
   const [loading, setLoading] = useState(false);
   const { notify } = useToast();
   const { register } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("animate-in");
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    document.querySelectorAll("[data-scroll-animate]").forEach((el) => {
-      observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  async function submitDemoEmail(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    const email = new FormData(event.currentTarget).get("demo_email");
-    if (!email || typeof email !== "string") {
-      return;
-    }
-    setDemoEmail(email);
-    setDemoCaptured(true);
-  }
 
   async function submitWaitlist(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -115,7 +85,7 @@ export function LandingPage(): JSX.Element {
               className="hidden gap-2 sm:inline-flex"
               variant="primary"
             >
-              <span>See Early Demo</span>
+              <span>Product Tour</span>
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -124,7 +94,7 @@ export function LandingPage(): JSX.Element {
 
       {/* Hero Section */}
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="mx-auto max-w-3xl">
           {/* Left Column - Text */}
           <div
             className="flex flex-col justify-center"
@@ -160,7 +130,7 @@ export function LandingPage(): JSX.Element {
                 onClick={() => setDemoOpen(true)}
                 className="w-full sm:w-auto sm:hidden"
               >
-                See Demo
+                Product Tour
               </Button>
             </div>
 
@@ -180,27 +150,6 @@ export function LandingPage(): JSX.Element {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Right Column - Screenshot */}
-          <div
-            className="relative"
-            data-scroll-animate
-            style={{
-              animation: "fadeInRight 0.8s ease-out forwards",
-              opacity: 0,
-            }}
-          >
-            <div className="relative overflow-hidden rounded-2xl border border-gray-200 shadow-2xl">
-              <img 
-                src="/dashboard.png" 
-                alt="LoanVati Dashboard" 
-                className="w-full h-auto"
-              />
-            </div>
-
-            {/* Gradient Blur Effect */}
-            <div className="absolute -bottom-8 -right-8 h-40 w-40 bg-gradient-to-br from-brand/20 to-indigo-500/10 blur-3xl" />
           </div>
         </div>
       </section>
@@ -293,47 +242,6 @@ export function LandingPage(): JSX.Element {
         </div>
       </section>
 
-      {/* Screenshots Gallery */}
-      <section className="border-t border-gray-200/50 bg-white py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black tracking-tight text-gray-950 md:text-4xl">
-              Simple. Powerful. Fast.
-            </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Experience the LoanVati interface designed for DSAs
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-            {[
-              { src: "/dashboard.png", title: "Dashboard & Decisions", description: "View applicant scores, SHAP explanations, and coaching tips all in one place." },
-              { src: "/form.png", title: "Smart Screening Form", description: "Intuitive form to input applicant details. AI scores the application in real-time." },
-            ].map((screenshot, idx) => (
-              <div
-                key={screenshot.src}
-                data-scroll-animate
-                className="relative"
-                style={{
-                  animation: `fadeInUp 0.6s ease-out forwards`,
-                  opacity: 0,
-                  animationDelay: `${idx * 0.2}s`,
-                }}
-              >
-                <div className="overflow-hidden rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
-                  <img 
-                    src={screenshot.src} 
-                    alt={screenshot.title}
-                    className="w-full h-auto"
-                  />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{screenshot.title}</h3>
-                <p className="mt-2 text-gray-600">{screenshot.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Waitlist Section */}
       <section id="waitlist" className="border-t border-gray-200/50 bg-gradient-to-br from-indigo-50 via-white to-indigo-50 py-16 md:py-24">
@@ -389,68 +297,13 @@ export function LandingPage(): JSX.Element {
         </div>
       </footer>
 
-      {/* Demo Modal */}
-      <Modal
-        title={demoCaptured ? "See Early Demo" : "Watch the Demo"}
+      <DemoSlideshow
         open={demoOpen}
-        onClose={() => {
-          setDemoOpen(false);
-          setDemoCaptured(false);
-          setDemoEmail("");
+        onClose={() => setDemoOpen(false)}
+        onJoinWaitlist={() => {
+          document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" });
         }}
-      >
-        {!demoCaptured ? (
-          <form onSubmit={submitDemoEmail} className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Enter your email to see a quick walkthrough of the LoanVati dashboard.
-            </p>
-            <InputField
-              label="Email"
-              name="demo_email"
-              type="email"
-              placeholder="your@email.com"
-              required
-            />
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={() => {
-                  setDemoOpen(false);
-                  setDemoCaptured(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Send Me the Demo</Button>
-            </div>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <div className="rounded-lg bg-gray-100 aspect-video flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-4xl mb-2">🎬</div>
-                <p className="text-sm text-gray-600">Demo video</p>
-                <p className="text-xs text-gray-500 mt-1">Sent to {demoEmail}</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600">
-              Check your email for the demo link. We'll also send you early access details!
-            </p>
-            <div className="flex justify-end">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setDemoOpen(false);
-                  setDemoCaptured(false);
-                }}
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      />
 
       <style>{`
         @keyframes fadeInUp {
