@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import joblib
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class CreditRiskPredictor:
@@ -49,6 +52,67 @@ class CreditRiskPredictor:
         self.feature_names = list(
             self.preprocessor_bundle["feature_names"]
         )
+
+    def _validate_features(self, feature_dict: dict) -> None:
+        """Warn on unexpected features; error on none of the expected features present.
+
+        Extra keys are safe — _align_features drops them via reindex.
+        Missing keys become NaN and are imputed — warn so the caller knows.
+        A hard raise only fires if the input shares zero columns with training,
+        which almost certainly means the wrong schema was passed.
+        """
+        known = set(self.feature_names)
+        provided = set(feature_dict.keys())
+        extra = provided - known
+        missing = known - provided
+        if extra:
+            logger.debug("Extra features ignored by model: %s", extra)
+        if missing:
+            logger.warning(
+                "%d features missing from input (will be median-imputed): %s",
+                len(missing),
+                missing,
+            )
+        if not provided.intersection(known):
+            raise ValueError(
+                f"Input shares no columns with the trained schema. "
+                f"Expected subset of: {known}"
+            )
+
+    def _guardrails(self, feature_dict: dict) -> str | None:
+        """Hard business-rule checks applied before the model runs.
+
+        Returns a flag string when a rule fires, or None when the input
+        should proceed to the model unchanged.
+
+        Flags:
+            APPROVE_SAFE   — ratios are so low the model will agree
+            REJECT_RISK    — ratios are so extreme the model is unreliable
+            MANUAL_REVIEW  — implausible input magnitude, needs human check
+        """
+        income = float(feature_dict.get("AMT_INCOME_TOTAL") or 0)
+        credit = float(feature_dict.get("AMT_CREDIT") or 0)
+        annuity = float(feature_dict.get("AMT_ANNUITY") or 0)
+
+        if income <= 0:
+            return "REJECT_RISK"  # cannot score without income
+
+        dti = credit / income   # debt-to-income
+        pti = annuity / income  # payment-to-income
+
+        # Extremely low burden — approve without model to avoid false positives
+        if dti < 0.05 and pti < 0.10:
+            return "APPROVE_SAFE"
+
+        # Structurally unviable — model extrapolation unreliable beyond these levels
+        if dti > 20.0 or pti > 0.80:
+            return "REJECT_RISK"
+
+        # Income above 10 Cr (₹100M) — outside training distribution, flag for human
+        if income > 1e8:
+            return "MANUAL_REVIEW"
+
+        return None
 
     def _align_features(self, feature_dict: dict) -> pd.DataFrame:
         """Align partial borrower input to the exact schema seen during training."""
@@ -146,18 +210,54 @@ class CreditRiskPredictor:
 
     def predict(self, feature_dict: dict) -> dict[str, object]:
         """Score a borrower and explain the decision with SHAP feature impacts."""
+        self._validate_features(feature_dict)
+
+        # Hard business-rule guardrails — checked before the model runs.
+        guardrail_flag = self._guardrails(feature_dict)
+        if guardrail_flag == "APPROVE_SAFE":
+            return {
+                "risk_score": 0.05,
+                "risk_class": "Low",
+                "confidence": 1.0,
+                "top_features": [],
+                "model_version": f"{self.model_version}_guardrail",
+            }
+        if guardrail_flag == "REJECT_RISK":
+            return {
+                "risk_score": 0.95,
+                "risk_class": "High",
+                "confidence": 1.0,
+                "top_features": [],
+                "model_version": f"{self.model_version}_guardrail",
+            }
+        if guardrail_flag == "MANUAL_REVIEW":
+            return {
+                "risk_score": 0.50,
+                "risk_class": "Uncertain — Manual Review Required",
+                "confidence": 0.0,
+                "top_features": [],
+                "model_version": f"{self.model_version}_guardrail",
+            }
+
         aligned_features = self._align_features(feature_dict)
         model_pipeline = self.rf_pipeline if self.rf_pipeline is not None else self.lr_pipeline
         probability = float(model_pipeline.predict_proba(aligned_features)[:, 1][0])
 
-        if abs(probability - self.threshold) < 0.10:
-            risk_class = "Uncertain — Manual Review Required"
-        elif probability < 0.30:
-            risk_class = "Low"
-        elif probability < 0.60:
-            risk_class = "Medium"
-        else:
+        # Threshold-relative bucketing.
+        # self.threshold is the FPR-constrained optimal from training (currently 0.43).
+        # Uncertain band = ±25% of threshold so the boundary adapts if threshold changes.
+        uncertain_low = self.threshold * 0.70
+        if probability >= self.threshold:
             risk_class = "High"
+        elif probability >= uncertain_low:
+            risk_class = "Uncertain — Manual Review Required"
+        else:
+            risk_class = "Low"
+
+        # True confidence = how far from the decision boundary (0.5).
+        # max(p, 1-p) was wrong: it gave 0.55 a "confidence" of 0.55.
+        # abs(p - 0.5) * 2 gives 0.0 at boundary, 1.0 at either extreme.
+        confidence = round(abs(probability - 0.5) * 2, 4)
 
         transformed_row = model_pipeline.named_steps["preprocessor"].transform(
             aligned_features
@@ -167,7 +267,7 @@ class CreditRiskPredictor:
         return {
             "risk_score": round(probability, 4),
             "risk_class": risk_class,
-            "confidence": round(float(max(probability, 1 - probability)), 4),
+            "confidence": confidence,
             "top_features": top_features,
             "model_version": self.model_version,
         }

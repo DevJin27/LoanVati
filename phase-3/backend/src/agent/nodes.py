@@ -153,10 +153,8 @@ def _validate_report(report: dict, retrieved_docs: list[dict]) -> None:
 def _fallback_report(state: AgentState) -> dict:
     """Return a safe deterministic report when the report LLM fails."""
     decision_action = (
-        "MANUAL REVIEW"
-        if "Uncertain" in state["risk_class"] or state["ml_risk_score"] >= 0.45
-        else "APPROVE"
-        if state["ml_risk_score"] < 0.30
+        "APPROVE" if state["ml_risk_score"] < 0.35
+        else "MANUAL REVIEW" if state["ml_risk_score"] < 0.60
         else "REJECT"
     )
     return {

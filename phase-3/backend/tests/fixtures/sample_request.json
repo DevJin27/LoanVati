@@ -10,6 +10,11 @@
     "NAME_INCOME_TYPE": "Working",
     "NAME_EDUCATION_TYPE": "Higher education",
     "NAME_FAMILY_STATUS": "Married",
-    "NAME_HOUSING_TYPE": "House / apartment"
+    "NAME_HOUSING_TYPE": "House / apartment",
+    "DAYS_EMPLOYED_PERC": -0.2083,
+    "INCOME_PER_PERSON": 90000.0,
+    "ANNUITY_INCOME_RATIO": 0.2333,
+    "CREDIT_INCOME_RATIO": 2.7778
   }
 }
+

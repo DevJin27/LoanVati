@@ -1,4 +1,4 @@
-"""Train the Phase 2 credit risk models and persist inference artifacts."""
+"""Train the Phase 3 credit risk models and persist inference artifacts."""
 
 from __future__ import annotations
 

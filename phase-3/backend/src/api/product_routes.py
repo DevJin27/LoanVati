@@ -40,17 +40,31 @@ def _normalize_risk_class(raw: str) -> str:
 
 
 def _screening_to_features(payload: ScreeningRequest) -> dict:
+    income = float(payload.income)
+    credit = float(payload.credit_amount)
+    annuity = float(payload.annuity)
+    family_size = float(payload.family_size)
+    days_birth = -round(float(payload.age_years) * 365.25, 2)
+    days_employed = -round(float(payload.employment_years) * 365.25, 2)
+
     return {
-        "AMT_INCOME_TOTAL": float(payload.income),
-        "AMT_CREDIT": float(payload.credit_amount),
-        "AMT_ANNUITY": float(payload.annuity),
-        "CNT_FAM_MEMBERS": float(payload.family_size),
-        "DAYS_BIRTH": -round(float(payload.age_years) * 365.25, 2),
-        "DAYS_EMPLOYED": -round(float(payload.employment_years) * 365.25, 2),
+        "AMT_INCOME_TOTAL": income,
+        "AMT_CREDIT": credit,
+        "AMT_ANNUITY": annuity,
+        "CNT_FAM_MEMBERS": family_size,
+        "DAYS_BIRTH": days_birth,
+        "DAYS_EMPLOYED": days_employed,
         "NAME_INCOME_TYPE": payload.income_type,
         "NAME_EDUCATION_TYPE": payload.education,
         "NAME_FAMILY_STATUS": payload.family_status,
         "NAME_HOUSING_TYPE": payload.housing_type,
+        # Ratio features — must mirror feature_engineering.engineer_main_features() exactly.
+        # These were present during training but were never computed at inference, causing
+        # the model to misinterpret raw income/credit values (root cause of income anomaly).
+        "DAYS_EMPLOYED_PERC": (days_employed / days_birth) if days_birth != 0 else float("nan"),
+        "INCOME_PER_PERSON": (income / family_size) if family_size > 0 else float("nan"),
+        "ANNUITY_INCOME_RATIO": (annuity / income) if income > 0 else float("nan"),
+        "CREDIT_INCOME_RATIO": (credit / income) if income > 0 else float("nan"),
     }
 
 

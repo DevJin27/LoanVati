@@ -3,13 +3,10 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { Button } from "../components/Button";
+import { DecisionCard } from "../components/DecisionCard";
 import { Modal } from "../components/Modal";
-import { RiskBadge } from "../components/RiskBadge";
-import { ScoreBar } from "../components/ScoreBar";
-import { ShapChart } from "../components/ShapChart";
 import { useToast } from "../contexts/ToastContext";
 import { api } from "../lib/api";
-import { formatCurrency, titleCase } from "../lib/format";
 import type { ApplicantDetail, CoachingTip, LenderOutcome } from "../types";
 
 function reportString(report: Record<string, unknown> | null | undefined, key: string): string {
@@ -150,7 +147,7 @@ export function ApplicantDetailPage(): JSX.Element {
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-6 pb-24 md:px-8">
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="mb-6 flex items-start gap-4">
         <div>
           <Link className="mb-2 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand" to="/dashboard">
             <ArrowLeft className="h-4 w-4" />
@@ -158,98 +155,22 @@ export function ApplicantDetailPage(): JSX.Element {
           </Link>
           <h1 className="text-[28px] font-medium tracking-normal text-gray-950">{applicant.full_name || "Applicant report"}</h1>
         </div>
-        <RiskBadge level={applicant.risk_class} />
       </header>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-5">
-          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-card">
-            <div className="mb-5 text-center text-xs font-semibold uppercase tracking-[0.06em] text-gray-400">Risk score</div>
-            <div className="text-center text-5xl font-bold text-gray-950">{applicant.risk_score.toFixed(2)}</div>
-            <div className="mt-5">
-              <ScoreBar score={applicant.risk_score} />
-            </div>
-            <div className="mt-5 flex items-center justify-center">
-              <RiskBadge level={applicant.risk_class} />
-            </div>
-            <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-gray-500">Confidence</dt>
-                <dd className="font-medium text-gray-900">{Math.round(applicant.confidence * 100)}%</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500">Model</dt>
-                <dd className="font-medium text-gray-900">{applicant.model_version}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500">Income</dt>
-                <dd className="font-medium text-gray-900">{formatCurrency(applicant.income)}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500">Credit</dt>
-                <dd className="font-medium text-gray-900">{formatCurrency(applicant.credit_amount)}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-card">
-            <h2 className="mb-5 text-base font-medium text-gray-950">Why this score?</h2>
-            <ShapChart features={applicant.shap_top_features} />
-          </section>
-
-          {coaching.length > 0 ? (
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-card">
-              <h2 className="mb-4 text-sm font-medium text-gray-950">How to improve this score</h2>
-              <div className="space-y-4">
-                {coaching.map((tip) => (
-                  <div key={`${tip.feature}-${tip.suggested_value}`} className="rounded-lg bg-gray-50 p-4">
-                    <div className="font-medium text-gray-950">{titleCase(tip.feature)}</div>
-                    <div className="mt-1 text-sm text-gray-500">{tip.human_tip}</div>
-                    <div className="mt-2 text-sm font-medium text-brand">Improvement: +{Math.round(tip.score_improvement * 100)} points</div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-card">
-            <h2 className="mb-4 text-base font-medium text-gray-950">What did you decide?</h2>
-            {applicant.dsa_decision ? (
-              <p className="text-sm font-medium text-gray-700">{applicant.status}</p>
-            ) : (
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button loading={decisionLoading} type="button" onClick={() => void saveDecision("submitted")}>
-                  Submit to lender
-                </Button>
-                <Button variant="secondary" loading={decisionLoading} type="button" onClick={() => void saveDecision("skipped")}>
-                  Skip applicant
-                </Button>
-              </div>
-            )}
-
-            {applicant.dsa_decision && applicant.dsa_decision !== "skipped" ? (
-              <form className="mt-6 space-y-4 border-t border-gray-100 pt-5" onSubmit={saveOutcome}>
-                <div className="text-sm font-medium text-gray-950">What did the lender decide?</div>
-                {[
-                  ["approved", "Approved"],
-                  ["rejected_credit", "Rejected - credit risk"],
-                  ["rejected_other", "Rejected - other reason"],
-                ].map(([value, label]) => (
-                  <label key={value} className="flex items-center gap-3 text-sm text-gray-700">
-                    <input defaultChecked={applicant.lender_outcome === value} name="lender_outcome" required type="radio" value={value} />
-                    {label}
-                  </label>
-                ))}
-                <input
-                  className="h-11 w-full rounded-lg border border-gray-200 px-3.5 outline-none focus:border-brand focus:ring-4 focus:ring-indigo-100"
-                  defaultValue={applicant.lender_name ?? ""}
-                  name="lender_name"
-                  placeholder="Lender name (optional)"
-                />
-                <Button type="submit">Save outcome</Button>
-              </form>
-            ) : null}
-          </section>
+          <DecisionCard
+            applicant={applicant}
+            submitLoading={decisionLoading}
+            onSubmit={() => {
+              if (applicant.risk_class === "High") {
+                setShowOverride(true);
+              } else {
+                void saveDecision("submitted");
+              }
+            }}
+            onSkip={() => void saveDecision("skipped")}
+          />
         </div>
 
         <div className="space-y-5 lg:col-span-7">
