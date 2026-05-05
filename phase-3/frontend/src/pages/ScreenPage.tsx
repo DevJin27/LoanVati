@@ -21,6 +21,7 @@ const incomeTypeOptions = ["Working", "Commercial associate", "Pensioner", "Stat
 const housingOptions = ["House / apartment", "Rented apartment", "Municipal apartment", "With parents", "Co-op apartment", "Office apartment"];
 const occupationOptions = ["Laborers", "Sales staff", "Core staff", "Managers", "Drivers", "Accountants", "High skill tech staff", "Medicine staff", "Other"];
 const familyStatusOptions = ["Married", "Single / not married", "Civil marriage", "Separated", "Widow"];
+const genderOptions = ["Prefer not to say", "Male (M)", "Female (F)", "Other / Not disclosed (XNA)"];
 const progressSteps = ["Scoring applicant", "Running SHAP analysis", "Generating report"];
 
 export function ScreenPage(): JSX.Element {
@@ -56,6 +57,12 @@ export function ScreenPage(): JSX.Element {
       housing_type: String(data.get("housing_type")),
       occupation: String(data.get("occupation")),
       family_status: String(data.get("family_status")),
+      gender: (() => {
+        const raw = String(data.get("gender") || "");
+        // Extract the code inside parentheses, e.g. "Male (M)" -> "M"
+        const match = raw.match(/\(([^)]+)\)$/);
+        return match ? match[1] : undefined;
+      })(),
     };
 
     setLoading(true);
@@ -100,6 +107,7 @@ export function ScreenPage(): JSX.Element {
               <SelectField label="Housing type" name="housing_type" options={housingOptions} />
               <SelectField label="Occupation type" name="occupation" options={occupationOptions} />
               <SelectField label="Family status" name="family_status" options={familyStatusOptions} />
+              <SelectField label="Gender" name="gender" options={genderOptions} defaultValue="Prefer not to say" />
             </div>
           </div>
         </section>

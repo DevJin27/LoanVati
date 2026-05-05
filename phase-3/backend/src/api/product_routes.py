@@ -58,6 +58,10 @@ def _screening_to_features(payload: ScreeningRequest) -> dict:
         "NAME_EDUCATION_TYPE": payload.education,
         "NAME_FAMILY_STATUS": payload.family_status,
         "NAME_HOUSING_TYPE": payload.housing_type,
+        # Gender: pass the applicant's value when provided.
+        # If omitted, leave as NaN so the preprocessor imputes the training prior
+        # rather than silently defaulting to 'F' (the most frequent class).
+        "CODE_GENDER": payload.gender if payload.gender else float("nan"),
         # Ratio features — must mirror feature_engineering.engineer_main_features() exactly.
         # These were present during training but were never computed at inference, causing
         # the model to misinterpret raw income/credit values (root cause of income anomaly).

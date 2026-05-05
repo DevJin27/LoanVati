@@ -27,6 +27,11 @@ class ScreeningRequest(BaseModel):
     housing_type: str
     occupation: str | None = None
     family_status: str = "Married"
+    gender: str | None = Field(
+        default=None,
+        description="Applicant gender. Accepted values: 'M', 'F', 'XNA'. "
+                    "If omitted the model uses its training prior (neutral imputation).",
+    )
 
 
 class DecisionRequest(BaseModel):

@@ -28,6 +28,7 @@ export interface ScreeningPayload {
   housing_type: string;
   occupation?: string;
   family_status: string;
+  gender?: string;
 }
 
 export interface ApplicantSummary {
