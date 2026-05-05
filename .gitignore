@@ -21,10 +21,11 @@ dist/
 # Jupyter
 .ipynb_checkpoints/
 
-# Model artefacts
+# Model artefacts — ignore everywhere except the committed models directory
 *.pkl
-*.joblib
 *.h5
+*.joblib
+!phase-3/backend/models/*.joblib
 
 # Environment variables
 .env
