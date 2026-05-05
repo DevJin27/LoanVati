@@ -1,11 +1,13 @@
 import { ArrowRight, Zap, BarChart3, Shield, Users } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "../components/Button";
 import { InputField } from "../components/FormField";
 import { Modal } from "../components/Modal";
+import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 
 const features = [
   {
@@ -43,6 +45,8 @@ export function LandingPage(): JSX.Element {
   const [demoCaptured, setDemoCaptured] = useState(false);
   const [loading, setLoading] = useState(false);
   const { notify } = useToast();
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -78,21 +82,21 @@ export function LandingPage(): JSX.Element {
     const data = new FormData(event.currentTarget);
     const email = String(data.get("waitlist_email"));
     const full_name = String(data.get("waitlist_name") || "");
+    // Generate a secure random password — user gets immediate access via the
+    // token; they can set a real password from Settings later.
+    const tempPassword = "LV_" + crypto.randomUUID().replace(/-/g, "").slice(0, 20);
 
     setLoading(true);
     try {
-      const result = await api.register({
-        full_name: full_name || email,
-        email,
-        password: "waitlist_placeholder_" + Math.random().toString(36).slice(2, 10),
-      });
-      notify("Welcome to the waitlist! Check your email for early access details.", "success");
+      await register(full_name || email, email, tempPassword);
+      notify("You're in! Redirecting to your dashboard...", "success");
       setWaitlistOpen(false);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
-        notify("Email already registered.", "error");
+        notify("Email already registered. Please log in instead.", "error");
       } else {
-        notify(error instanceof Error ? error.message : "Unable to join waitlist.", "error");
+        notify(error instanceof Error ? error.message : "Unable to create your account.", "error");
       }
     } finally {
       setLoading(false);
